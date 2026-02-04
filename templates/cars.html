@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <h3>Cars</h3>
+  <h3>Автомобили</h3>
   {% if current_user.role == 'manager' %}
     <button class="btn btn-sm btn-primary" data-bs-toggle="collapse" data-bs-target="#addCarForm">
-      Add car
+      Добави кола
     </button>
   {% endif %}
 </div>
@@ -39,7 +39,7 @@
 </div>
 {% endif %}
 
-<div class="card"> <div class="card-body p-0"> <table class="table table-hover table-striped mb-0"> <thead class="table-dark"> <tr> <th>ID</th> <th>VIN</th> <th>Make</th> <th>Model</th> <th>Year</th> <th>Owner</th> </tr> </thead>
+<div class="card"> <div class="card-body p-0"> <table class="table table-hover table-striped mb-0"> <thead class="table-dark"> <tr> <th>ID</th> <th>VIN</th> <th>Марка</th> <th>Модел</th> <th>Година</th> <th>Собственик</th> </tr> </thead>
   <tbody>
     {% for car in cars %}
       <tr>

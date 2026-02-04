@@ -32,7 +32,7 @@ def car_details(car_id):
 
     # SECURITY: Clients can only view their own cars
     if current_user.role == Role.CLIENT and car.owner_name != current_user.username:
-        flash("You are not allowed to view this car.", "danger")
+        flash("Нямате право да виждате този автомобил.", "danger")
         return redirect(url_for("cars.list_cars"))
 
     orders = WorkOrder.query.filter_by(car_id=car_id).all()

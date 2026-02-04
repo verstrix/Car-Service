@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <h3>Parts inventory</h3>
+  <h3>Инвентар на части</h3>
   {% if current_user.role == 'manager' %}
     <button class="btn btn-sm btn-primary" data-bs-toggle="collapse" data-bs-target="#addPartForm">
-      Add part
+      Добави част
     </button>
   {% endif %}
 </div>
@@ -15,22 +15,22 @@
     <form method="post">
       <div class="row g-2">
         <div class="col-md-3">
-          <input class="form-control" name="part_number" placeholder="Part number" required>
+          <input class="form-control" name="part_number" placeholder="Номер на част" required>
         </div>
         <div class="col-md-3">
-          <input class="form-control" name="name" placeholder="Name" required>
+          <input class="form-control" name="name" placeholder="Име" required>
         </div>
         <div class="col-md-3">
-          <input class="form-control" name="quantity" placeholder="Quantity" type="number">
+          <input class="form-control" name="quantity" placeholder="Количество" type="number">
         </div>
         <div class="col-md-3">
-          <input class="form-control" name="unit_price" placeholder="Unit price" type="number" step="0.01">
+          <input class="form-control" name="unit_price" placeholder="Цена за брой" type="number" step="0.01">
         </div>
         <div class="col-12 mt-2">
-          <textarea class="form-control" name="description" placeholder="Description"></textarea>
+          <textarea class="form-control" name="description" placeholder="Описание"></textarea>
         </div>
       </div>
-      <button class="btn btn-success mt-3" type="submit">Save</button>
+      <button class="btn btn-success mt-3" type="submit">Запази</button>
     </form>
   </div>
 </div>
@@ -43,7 +43,7 @@
 
   <thead>
     <tr>
-      <th>ID</th><th>Part #</th><th>Name</th><th>Qty</th><th>Price</th>
+      <th>ID</th><th>Част №</th><th>Име</th><th>Кол-во</th><th>Цена</th>
     </tr>
   </thead>
   <tbody>
@@ -59,3 +59,5 @@
   </tbody>
 </table>
 {% endblock %}
+</div>
+</div>

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h3 class="mb-4">Car Details</h3>
+<h3 class="mb-4">Детайли за автомобила</h3>
 
 <!-- CAR INFO -->
 <div class="card mb-4">
@@ -17,19 +17,19 @@
 </div>
 
 <!-- WORK ORDERS FOR THIS CAR -->
-<h4 class="mb-3">Work Order History</h4>
+<h4 class="mb-3">История на работните поръчки</h4>
 
 <div class="card">
   <div class="card-body p-0">
     <table class="table table-hover table-striped mb-0">
       <thead class="table-dark">
         <tr>
-          <th>ID</th>
-          <th>Description</th>
-          <th>Status</th>
-          <th>Mechanic</th>
-          <th>Parts Used</th>
-          <th>Actions</th>
+          <th>ИД</th>
+          <th>Описание</th>
+          <th>Статус</th>
+          <th>Механик</th>
+          <th>Използвани части</th>
+          <th>Действия</th>
         </tr>
       </thead>
 
@@ -42,13 +42,13 @@
 
           <td>
             {% if o.status == 'open' %}
-              <span class="badge bg-secondary">Open</span>
+              <span class="badge bg-secondary">Отворена</span>
             {% elif o.status == 'in_progress' %}
-              <span class="badge bg-primary">Working</span>
+              <span class="badge bg-primary">В процес</span>
             {% elif o.status == 'awaiting_parts' %}
-              <span class="badge bg-warning text-dark">Awaiting Parts</span>
+              <span class="badge bg-warning text-dark">Чака части</span>
             {% elif o.status == 'completed' %}
-              <span class="badge bg-success">Completed</span>
+              <span class="badge bg-success">Завършена</span>
             {% else %}
               {{ o.status }}
             {% endif %}
@@ -69,7 +69,7 @@
           <td>
             <a class="btn btn-sm btn-outline-primary"
                href="{{ url_for('work_orders.list_work_orders') }}">
-              View in Work Orders
+              Виж в работни поръчки
             </a>
           </td>
         </tr>

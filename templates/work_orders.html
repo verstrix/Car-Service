@@ -1,45 +1,45 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h3 class="mb-4">Work orders</h3>
+<h3 class="mb-4">Работни поръчки</h3>
 
 <!-- CLIENT WORK ORDER FORM -->
 {% if current_user.role == 'client' %}
 <div class="card mb-4">
   <div class="card-body">
-    <h5 class="mb-3">Create work order</h5>
+    <h5 class="mb-3">Създай работна поръчка</h5>
 
     <form method="post">
       <div class="row g-3">
 
         <div class="col-md-4">
-          <label class="form-label">Car Make</label>
+          <label class="form-label">Марка</label>
           <input class="form-control" name="make" required>
         </div>
 
         <div class="col-md-4">
-          <label class="form-label">Car Model</label>
+          <label class="form-label">Модел</label>
           <input class="form-control" name="model" required>
         </div>
 
         <div class="col-md-2">
-          <label class="form-label">Year</label>
+          <label class="form-label">Година</label>
           <input class="form-control" type="number" name="year">
         </div>
 
         <div class="col-md-4 mt-2">
-          <label class="form-label">VIN (optional)</label>
+          <label class="form-label">VIN (по избор)</label>
           <input class="form-control" name="vin">
         </div>
 
         <div class="col-md-12 mt-2">
-          <label class="form-label">Describe the problem</label>
+          <label class="form-label">Опишете проблема</label>
           <textarea class="form-control" name="description" required></textarea>
         </div>
 
       </div>
 
-      <button class="btn btn-primary mt-3" type="submit">Create</button>
+      <button class="btn btn-primary mt-3" type="submit">Създай</button>
     </form>
   </div>
 </div>
@@ -52,12 +52,12 @@
       <thead class="table-dark">
         <tr>
           <th>ID</th>
-          <th>Car</th>
-          <th>Description</th>
-          <th>Client</th>
-          <th>Mechanic</th>
-          <th>Status</th>
-          <th style="width: 280px;">Actions</th>
+          <th>Автомобил</th>
+          <th>Описание</th>
+          <th>Клиент</th>
+          <th>Механик</th>
+          <th>Статус</th>
+          <th style="width: 280px;">Действия</th>
         </tr>
       </thead>
 
@@ -105,10 +105,10 @@
             <!-- Update status -->
             <form method="post" action="{{ url_for('work_orders.update_status', order_id=o.id) }}" class="d-flex">
               <select class="form-select form-select-sm me-2" name="status">
-                <option value="open" {% if o.status == 'open' %}selected{% endif %}>Open</option>
-                <option value="in_progress" {% if o.status == 'in_progress' %}selected{% endif %}>Working</option>
-                <option value="awaiting_parts" {% if o.status == 'awaiting_parts' %}selected{% endif %}>Awaiting Parts</option>
-                <option value="completed" {% if o.status == 'completed' %}selected{% endif %}>Completed</option>
+                <option value="open" {% if o.status == 'open' %}selected{% endif %}>Отворена</option>
+                <option value="in_progress" {% if o.status == 'in_progress' %}selected{% endif %}>В процес</option>
+                <option value="awaiting_parts" {% if o.status == 'awaiting_parts' %}selected{% endif %}>Чака части</option>
+                <option value="completed" {% if o.status == 'completed' %}selected{% endif %}>Завършена</option>
               </select>
               <button class="btn btn-sm btn-success">Update</button>
             </form>
@@ -119,15 +119,15 @@
             {% if current_user.role == 'mechanic' and o.status != 'completed' %}
             <form method="post" action="{{ url_for('work_orders.complete_order', order_id=o.id) }}" class="d-flex">
               <select class="form-select form-select-sm me-2" name="part_id">
-                <option value="">No part</option>
+                <option value="">Без част</option>
                 {% for p in parts %}
                   <option value="{{ p.id }}">{{ p.name }} ({{ p.quantity }})</option>
                 {% endfor %}
               </select>
 
-              <input class="form-control form-control-sm me-2" type="number" name="quantity_used" placeholder="Qty">
+              <input class="form-control form-control-sm me-2" type="number" name="quantity_used" placeholder="Кол-во">
 
-              <button class="btn btn-sm btn-success">Complete</button>
+              <button class="btn btn-sm btn-success">Завърши</button>
             </form>
             {% endif %}
 

@@ -16,7 +16,7 @@ def list_work_orders():
     # -----------------------------
     if request.method == "POST":
         if current_user.role != Role.CLIENT:
-            flash("Only clients can create work orders.", "danger")
+            flash("Само клиенти могат да създават работни поръчки.", "danger")
             return redirect(url_for("work_orders.list_work_orders"))
 
         # Get car details typed by client
@@ -47,7 +47,7 @@ def list_work_orders():
             db.session.commit()
 
 
-        flash("Work order created successfully.", "success")
+        flash("Работната поръчка е създадена успешно.", "success")
         return redirect(url_for("work_orders.list_work_orders"))
 
     # -----------------------------
@@ -88,7 +88,7 @@ def list_work_orders():
 @login_required
 def assign_mechanic(order_id):
     if current_user.role != Role.MANAGER:
-        flash("Only managers can assign mechanics.", "danger")
+        flash("Само мениджъри могат да назначават механици.", "danger")
         return redirect(url_for("work_orders.list_work_orders"))
 
     mechanic_id = int(request.form.get("mechanic_id"))
@@ -97,7 +97,7 @@ def assign_mechanic(order_id):
     order.status = "in_progress"
     db.session.commit()
 
-    flash("Mechanic assigned successfully.", "success")
+    flash("Механикът е назначен успешно.", "success")
     return redirect(url_for("work_orders.list_work_orders"))
 
 
@@ -108,7 +108,7 @@ def assign_mechanic(order_id):
 @login_required
 def update_status(order_id):
     if current_user.role != Role.MANAGER:
-        flash("Only managers can update status.", "danger")
+        flash("Само мениджъри могат да обновяват статуса.", "danger")
         return redirect(url_for("work_orders.list_work_orders"))
 
     new_status = request.form.get("status")
@@ -117,7 +117,7 @@ def update_status(order_id):
     order.status = new_status
     db.session.commit()
 
-    flash("Status updated.", "success")
+    flash("Статусът е обновен.", "success")
     return redirect(url_for("work_orders.list_work_orders"))
 
 
@@ -128,7 +128,7 @@ def update_status(order_id):
 @login_required
 def complete_order(order_id):
     if current_user.role != Role.MECHANIC:
-        flash("Only mechanics can complete work orders.", "danger")
+        flash("Само механици могат да завършат работни поръчки.", "danger")
         return redirect(url_for("work_orders.list_work_orders"))
 
     order = WorkOrder.query.get_or_404(order_id)
@@ -147,13 +147,13 @@ def complete_order(order_id):
             )
             db.session.add(wop)
         else:
-            flash("Not enough stock for that part.", "danger")
+            flash("Няма достатъчно наличност за тази част.", "danger")
             return redirect(url_for("work_orders.list_work_orders"))
 
     order.status = "completed"
     db.session.commit()
 
-    flash("Work order completed.", "success")
+    flash("Работната поръчка е завършена.", "success")
     return redirect(url_for("work_orders.list_work_orders"))
 
 @work_bp.route("/view/<int:order_id>")

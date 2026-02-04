@@ -10,7 +10,7 @@ parts_bp = Blueprint("parts", __name__, url_prefix="/parts")
 def list_parts():
     if request.method == "POST":
         if current_user.role != Role.MANAGER:
-            flash("Only managers can manage inventory.", "danger")
+            flash("Само мениджъри могат да управляват инвентара.", "danger")
             return redirect(url_for("parts.list_parts"))
 
         part_number = request.form.get("part_number")
@@ -28,7 +28,7 @@ def list_parts():
         )
         db.session.add(part)
         db.session.commit()
-        flash("Part added.", "success")
+        flash("Частта е добавена.", "success")
         return redirect(url_for("parts.list_parts"))
 
     parts = Part.query.order_by(Part.id.desc()).all()

@@ -10,7 +10,7 @@ users_bp = Blueprint("users", __name__, url_prefix="/users")
 @login_required
 def manage_users():
     if current_user.role != Role.MANAGER:
-        flash("Only managers can manage users.", "danger")
+        flash("Само мениджъри могат да управляват потребители.", "danger")
         return redirect(url_for("dashboard"))
 
     if request.method == "POST":
@@ -19,7 +19,7 @@ def manage_users():
         role = request.form.get("role")
 
         if User.query.filter_by(username=username).first():
-            flash("Username already exists.", "danger")
+            flash("Потребителското име вече съществува.", "danger")
             return redirect(url_for("users.manage_users"))
 
         user = User(
@@ -29,7 +29,7 @@ def manage_users():
         )
         db.session.add(user)
         db.session.commit()
-        flash("User created successfully.", "success")
+        flash("Потребителят е създаден успешно.", "success")
         return redirect(url_for("users.manage_users"))
 
     users = User.query.order_by(User.id.desc()).all()

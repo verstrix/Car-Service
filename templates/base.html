@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="en">
+<html lang="bg">
 <head>
   <meta charset="utf-8">
-  <title>Car Service</title>
+  <title>Автосервиз</title>
 
   <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -134,7 +134,7 @@
   <div class="container-fluid">
 
     <a class="navbar-brand" href="/">
-      <i class="bi bi-tools me-1"></i> Car Service
+      <i class="bi bi-tools me-1"></i> Автосервиз
     </a>
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
@@ -148,29 +148,29 @@
         <li class="nav-item">
           <a class="nav-link {% if request.path.startswith('/cars') %}active{% endif %}"
              href="{{ url_for('cars.list_cars') }}">
-            Cars
+            Автомобили
           </a>
         </li>
 
         <li class="nav-item">
           <a class="nav-link {% if request.path.startswith('/parts') %}active{% endif %}"
              href="{{ url_for('parts.list_parts') }}">
-            Parts
+            Части
           </a>
         </li>
 
         <li class="nav-item">
           <a class="nav-link {% if request.path.startswith('/work-orders') %}active{% endif %}"
              href="{{ url_for('work_orders.list_work_orders') }}">
-            Work Orders
+            Работни поръчки
           </a>
         </li>
 
         {% if current_user.role == "manager" %}
         <li class="nav-item">
-  <a class="nav-link {% if request.path.startswith('/users') %}active{% endif %}"
+    <a class="nav-link {% if request.path.startswith('/users') %}active{% endif %}"
      href="{{ url_for('users.manage_users') }}">
-    Users
+    Потребители
   </a>
 </li>
 
@@ -190,14 +190,14 @@
 
     <li class="nav-item">
       <a class="nav-link text-danger" href="{{ url_for('auth.logout') }}">
-        Logout
+        Изход
       </a>
     </li>
 
   {% else %}
     <li class="nav-item">
       <a class="nav-link" href="{{ url_for('auth.login') }}">
-        Login
+        Вход
       </a>
     </li>
   {% endif %}
