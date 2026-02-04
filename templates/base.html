@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Car Service</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+  <style>
+    body {
+      background: #f7f9fb;
+      font-family: 'Inter', sans-serif;
+      color: #333;
+    }
+
+    /* NAVBAR */
+    .navbar {
+      background: #ffffff !important;
+      border-bottom: 1px solid #e5e7eb;
+      padding-top: 0.7rem;
+      padding-bottom: 0.7rem;
+    }
+
+    .navbar-brand {
+      font-weight: 600;
+      color: #0d9488 !important; /* teal */
+    }
+
+    .nav-link {
+      color: #555 !important;
+      font-weight: 500;
+      margin-right: 0.8rem;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      color: #0d9488 !important;
+    }
+
+    /* CARDS */
+    .card {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+
+    .card-header {
+      border-bottom: 1px solid #e5e7eb;
+      background: #ffffff;
+      font-weight: 600;
+    }
+
+    /* TABLES */
+    table {
+      font-size: 0.95rem;
+    }
+
+    thead {
+      background: #f1f5f9;
+    }
+
+    thead th {
+      font-weight: 600;
+      color: #444;
+      border-bottom: 1px solid #e5e7eb !important;
+    }
+
+    tbody tr:hover {
+      background: #f9fafb;
+    }
+
+    /* BUTTONS */
+    .btn-primary {
+      background: #0d9488;
+      border-color: #0d9488;
+      border-radius: 8px;
+      font-weight: 500;
+    }
+
+    .btn-primary:hover {
+      background: #0f766e;
+      border-color: #0f766e;
+    }
+
+    .btn-outline-primary {
+      color: #0d9488;
+      border-color: #0d9488;
+      border-radius: 8px;
+    }
+
+    .btn-outline-primary:hover {
+      background: #0d9488;
+      color: white;
+    }
+
+    /* BADGES */
+    .badge {
+      font-size: 0.8rem;
+      padding: 0.45em 0.65em;
+      border-radius: 6px;
+    }
+
+    /* FORMS */
+    .form-control,
+    .form-select {
+      border-radius: 8px;
+      border-color: #d1d5db;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      border-color: #0d9488;
+      box-shadow: 0 0 0 3px rgba(13,148,136,0.15);
+    }
+
+    /* CONTAINER WIDTH */
+    .container {
+      max-width: 1200px;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg">
+  <div class="container-fluid">
+
+    <a class="navbar-brand" href="/">
+      <i class="bi bi-tools me-1"></i> Car Service
+    </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navMenu">
+
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+        <li class="nav-item">
+          <a class="nav-link {% if request.path.startswith('/cars') %}active{% endif %}"
+             href="{{ url_for('cars.list_cars') }}">
+            Cars
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link {% if request.path.startswith('/parts') %}active{% endif %}"
+             href="{{ url_for('parts.list_parts') }}">
+            Parts
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link {% if request.path.startswith('/work-orders') %}active{% endif %}"
+             href="{{ url_for('work_orders.list_work_orders') }}">
+            Work Orders
+          </a>
+        </li>
+
+        {% if current_user.role == "manager" %}
+        <li class="nav-item">
+  <a class="nav-link {% if request.path.startswith('/users') %}active{% endif %}"
+     href="{{ url_for('users.manage_users') }}">
+    Users
+  </a>
+</li>
+
+        {% endif %}
+
+      </ul>
+
+      <<ul class="navbar-nav ms-auto">
+
+  {% if current_user.is_authenticated %}
+    <li class="nav-item">
+      <span class="navbar-text me-3">
+        <i class="bi bi-person-circle"></i>
+        {{ current_user.username }} ({{ current_user.role.lower() }})
+      </span>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link text-danger" href="{{ url_for('auth.logout') }}">
+        Logout
+      </a>
+    </li>
+
+  {% else %}
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url_for('auth.login') }}">
+        Login
+      </a>
+    </li>
+  {% endif %}
+
+</ul>
+
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<div class="container py-4">
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, msg in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ msg }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3 class="mb-4">Work Order #{{ order.id }}</h3>
+
+<!-- STATUS BADGE -->
+<div class="mb-3">
+  {% if order.status == 'open' %}
+    <span class="badge bg-secondary">Open</span>
+  {% elif order.status == 'in_progress' %}
+    <span class="badge bg-primary">Working</span>
+  {% elif order.status == 'awaiting_parts' %}
+    <span class="badge bg-warning text-dark">Awaiting Parts</span>
+  {% elif order.status == 'completed' %}
+    <span class="badge bg-success">Completed</span>
+  {% endif %}
+</div>
+
+<!-- CAR INFO -->
+<div class="card mb-4">
+  <div class="card-header bg-dark text-white">Car Information</div>
+  <div class="card-body">
+    <p><strong>Make:</strong> {{ car.make }}</p>
+    <p><strong>Model:</strong> {{ car.model }}</p>
+    <p><strong>Year:</strong> {{ car.year }}</p>
+    <p><strong>VIN:</strong> {{ car.vin }}</p>
+    <p><strong>Owner:</strong> {{ car.owner_name }}</p>
+    <p><strong>Phone:</strong> {{ car.owner_phone }}</p>
+
+    <a class="btn btn-outline-primary mt-2"
+       href="{{ url_for('cars.car_details', car_id=car.id) }}">
+      View Car History
+    </a>
+  </div>
+</div>
+
+<!-- PROBLEM DESCRIPTION -->
+<div class="card mb-4">
+  <div class="card-header bg-dark text-white">Problem Description</div>
+  <div class="card-body">
+    <p>{{ order.description }}</p>
+  </div>
+</div>
+
+<!-- CLIENT INFO -->
+<div class="card mb-4">
+  <div class="card-header bg-dark text-white">Client Information</div>
+  <div class="card-body">
+    <p><strong>Username:</strong> {{ client.username }}</p>
+  </div>
+</div>
+
+<!-- MECHANIC INFO -->
+<div class="card mb-4">
+  <div class="card-header bg-dark text-white">Mechanic</div>
+  <div class="card-body">
+
+    {% if mechanic %}
+      <p><strong>Assigned mechanic:</strong> {{ mechanic.username }}</p>
+    {% else %}
+      <p><strong>No mechanic assigned yet.</strong></p>
+    {% endif %}
+
+    {% if current_user.role == 'manager' %}
+    <form method="post" action="{{ url_for('work_orders.assign_mechanic', order_id=order.id) }}" class="d-flex mt-2">
+      <select class="form-select me-2" name="mechanic_id">
+        {% for m in mechanics %}
+          <option value="{{ m.id }}" {% if mechanic and mechanic.id == m.id %}selected{% endif %}>
+            {{ m.username }}
+          </option>
+        {% endfor %}
+      </select>
+      <button class="btn btn-primary">Assign</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<!-- PARTS USED -->
+<div class="card mb-4">
+  <div class="card-header bg-dark text-white">Parts Used</div>
+  <div class="card-body">
+
+    {% if parts_used %}
+      <ul>
+        {% for p in parts_used %}
+          <li>{{ p.part.name }} — {{ p.quantity_used }} pcs</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No parts used.</p>
+    {% endif %}
+
+  </div>
+</div>
+
+<!-- STATUS UPDATE (MANAGER ONLY) -->
+{% if current_user.role == 'manager' %}
+<div class="card mb-4">
+  <div class="card-header bg-dark text-white">Update Status</div>
+  <div class="card-body">
+    <form method="post" action="{{ url_for('work_orders.update_status', order_id=order.id) }}" class="d-flex">
+      <select class="form-select me-2" name="status">
+        <option value="open" {% if order.status == 'open' %}selected{% endif %}>Open</option>
+        <option value="in_progress" {% if order.status == 'in_progress' %}selected{% endif %}>Working</option>
+        <option value="awaiting_parts" {% if order.status == 'awaiting_parts' %}selected{% endif %}>Awaiting Parts</option>
+        <option value="completed" {% if order.status == 'completed' %}selected{% endif %}>Completed</option>
+      </select>
+      <button class="btn btn-success">Update</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<!-- MECHANIC COMPLETE JOB -->
+{% if current_user.role == 'mechanic' and order.status != 'completed' %}
+<div class="card mb-4">
+  <div class="card-header bg-dark text-white">Complete Work Order</div>
+  <div class="card-body">
+    <form method="post" action="{{ url_for('work_orders.complete_order', order_id=order.id) }}" class="row g-2">
+
+      <div class="col-md-6">
+        <label class="form-label">Part</label>
+        <select class="form-select" name="part_id">
+          <option value="">No part</option>
+          {% for p in parts %}
+            <option value="{{ p.id }}">{{ p.name }} ({{ p.quantity }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">Quantity</label>
+        <input class="form-control" type="number" name="quantity_used">
+      </div>
+
+      <div class="col-md-3 d-flex align-items-end">
+        <button class="btn btn-success w-100">Complete</button>
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<a class="btn btn-secondary" href="{{ url_for('work_orders.list_work_orders') }}">
+  Back to Work Orders
+</a>
+
+{% endblock %}

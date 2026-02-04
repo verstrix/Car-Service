@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3 class="mb-4">Car Details</h3>
+
+<!-- CAR INFO -->
+<div class="card mb-4">
+  <div class="card-body">
+    <h4 class="mb-3">
+      {{ car.make }} {{ car.model }} ({{ car.year }})
+    </h4>
+
+    <p class="mb-1"><strong>VIN:</strong> {{ car.vin }}</p>
+    <p class="mb-1"><strong>Owner:</strong> {{ car.owner_name }}</p>
+    <p class="mb-1"><strong>Phone:</strong> {{ car.owner_phone }}</p>
+  </div>
+</div>
+
+<!-- WORK ORDERS FOR THIS CAR -->
+<h4 class="mb-3">Work Order History</h4>
+
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-hover table-striped mb-0">
+      <thead class="table-dark">
+        <tr>
+          <th>ID</th>
+          <th>Description</th>
+          <th>Status</th>
+          <th>Mechanic</th>
+          <th>Parts Used</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for o in orders %}
+        <tr>
+          <td>{{ o.id }}</td>
+
+          <td>{{ o.description }}</td>
+
+          <td>
+            {% if o.status == 'open' %}
+              <span class="badge bg-secondary">Open</span>
+            {% elif o.status == 'in_progress' %}
+              <span class="badge bg-primary">Working</span>
+            {% elif o.status == 'awaiting_parts' %}
+              <span class="badge bg-warning text-dark">Awaiting Parts</span>
+            {% elif o.status == 'completed' %}
+              <span class="badge bg-success">Completed</span>
+            {% else %}
+              {{ o.status }}
+            {% endif %}
+          </td>
+
+          <td>{{ o.mechanic.username if o.mechanic else "-" }}</td>
+
+          <td>
+            {% if o.parts %}
+              {% for p in o.parts %}
+                {{ p.part.name }} ({{ p.quantity_used }})<br>
+              {% endfor %}
+            {% else %}
+              -
+            {% endif %}
+          </td>
+
+          <td>
+            <a class="btn btn-sm btn-outline-primary"
+               href="{{ url_for('work_orders.list_work_orders') }}">
+              View in Work Orders
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+  </div>
+</div>
+
+{% endblock %}

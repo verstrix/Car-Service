@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-4">User Management</h3>
+
+<div class="card mb-4">
+  <div class="card-header bg-primary text-white">Create New User</div>
+  <div class="card-body">
+    <form method="post">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Username</label>
+          <input class="form-control" name="username" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Password</label>
+          <input class="form-control" type="password" name="password" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Role</label>
+          <select class="form-select" name="role" required>
+            {% for r in roles %}
+              <option value="{{ r }}">{{ r|capitalize }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-success mt-3">Create User</button>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header bg-dark text-white">Existing Users</div>
+  <div class="card-body p-0">
+    <table class="table table-striped mb-0">
+      <thead class="table-dark">
+        <tr>
+          <th>ID</th>
+          <th>Username</th>
+          <th>Role</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td>{{ u.id }}</td>
+          <td>{{ u.username }}</td>
+          <td>{{ u.role }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
