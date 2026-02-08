@@ -40,24 +40,31 @@
   <div class="card-body p-0">
     <table class="table table-hover table-striped mb-0">
       <thead class="table-dark">
+        <tr>
+          <th>ID</th>
+          <th>Част №</th>
+          <th>Име</th>
+          <th>Кол-во</th>
+          <th>Цена</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for part in parts %}
+          <tr>
+            <td>{{ part.id }}</td>
+            <td>{{ part.part_number }}</td>
+            <td>{{ part.name }}</td>
+            <td>{{ part.quantity }}</td>
+            <td>{{ "%.2f"|format(part.unit_price) }}</td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="5" class="text-center">Няма намерени части.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 
-  <thead>
-    <tr>
-      <th>ID</th><th>Част №</th><th>Име</th><th>Кол-во</th><th>Цена</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for part in parts %}
-      <tr>
-        <td>{{ part.id }}</td>
-        <td>{{ part.part_number }}</td>
-        <td>{{ part.name }}</td>
-        <td>{{ part.quantity }}</td>
-        <td>{{ "%.2f"|format(part.unit_price) }}</td>
-      </tr>
-    {% endfor %}
-  </tbody>
-</table>
 {% endblock %}
-</div>
-</div>

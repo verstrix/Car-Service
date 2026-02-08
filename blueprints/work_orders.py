@@ -132,12 +132,23 @@ def complete_order(order_id):
         return redirect(url_for("work_orders.list_work_orders"))
 
     order = WorkOrder.query.get_or_404(order_id)
-    part_id = int(request.form.get("part_id"))
-    quantity_used = int(request.form.get("quantity_used") or 0)
 
-    # Deduct parts from inventory
-    if quantity_used > 0:
-        part = Part.query.get(part_id)
+    # Ensure mechanic is assigned (or assign to current mechanic)
+    if order.mechanic_id is None:
+        order.mechanic_id = current_user.id
+    elif order.mechanic_id != current_user.id:
+        flash("Само назначеният механик може да завърши тази поръчка.", "danger")
+        return redirect(url_for("work_orders.list_work_orders"))
+
+    part_id = request.form.get("part_id")
+    try:
+        quantity_used = int(request.form.get("quantity_used") or 0)
+    except (ValueError, TypeError):
+        quantity_used = 0
+
+    # Deduct parts from inventory if provided
+    if part_id and quantity_used > 0:
+        part = Part.query.get(int(part_id))
         if part and part.quantity >= quantity_used:
             part.quantity -= quantity_used
             wop = WorkOrderPart(
@@ -148,13 +159,13 @@ def complete_order(order_id):
             db.session.add(wop)
         else:
             flash("Няма достатъчно наличност за тази част.", "danger")
-            return redirect(url_for("work_orders.list_work_orders"))
+            return redirect(url_for("work_orders.view_order", order_id=order.id))
 
     order.status = "completed"
     db.session.commit()
 
     flash("Работната поръчка е завършена.", "success")
-    return redirect(url_for("work_orders.list_work_orders"))
+    return redirect(url_for("work_orders.view_order", order_id=order.id))
 
 @work_bp.route("/view/<int:order_id>")
 @login_required
@@ -163,8 +174,9 @@ def view_order(order_id):
     car = order.car
     client = order.client
     mechanic = order.mechanic
-    parts_used = order.parts  # WorkOrderPart entries
+    parts_used = order.parts_used  # WorkOrderPart entries (backref from WorkOrderPart)
     mechanics = User.query.filter_by(role=Role.MECHANIC).all()
+    parts = Part.query.all()
 
     return render_template(
         "work_order_details.html",
@@ -173,6 +185,56 @@ def view_order(order_id):
         client=client,
         mechanic=mechanic,
         parts_used=parts_used,
-        mechanics=mechanics
+        mechanics=mechanics,
+        parts=parts,
     )
+
+
+@work_bp.route("/use_part/<int:order_id>", methods=["POST"])
+@login_required
+def use_part(order_id):
+    if current_user.role != Role.MECHANIC:
+        flash("Само механици могат да използват части.", "danger")
+        return redirect(url_for("work_orders.list_work_orders"))
+
+    order = WorkOrder.query.get_or_404(order_id)
+
+    # Only assigned mechanic may use parts
+    if order.mechanic_id is None:
+        flash("Трябва да сте назначен за тази поръчка, за да използвате части.", "danger")
+        return redirect(url_for("work_orders.view_order", order_id=order.id))
+    if order.mechanic_id != current_user.id:
+        flash("Само назначеният механик може да използва части.", "danger")
+        return redirect(url_for("work_orders.view_order", order_id=order.id))
+
+    try:
+        part_id = int(request.form.get("part_id") or 0)
+        quantity_used = int(request.form.get("quantity_used") or 0)
+    except (ValueError, TypeError):
+        flash("Невалидно количество.", "danger")
+        return redirect(url_for("work_orders.view_order", order_id=order.id))
+
+    if part_id <= 0 or quantity_used <= 0:
+        flash("Изберете част и въведете положително количество.", "warning")
+        return redirect(url_for("work_orders.view_order", order_id=order.id))
+
+    part = Part.query.get(part_id)
+    if not part or part.quantity < quantity_used:
+        flash("Няма достатъчно наличност за тази част.", "danger")
+        return redirect(url_for("work_orders.view_order", order_id=order.id))
+
+    # Deduct and record
+    part.quantity -= quantity_used
+    wop = WorkOrderPart(
+        work_order_id=order.id,
+        part_id=part.id,
+        quantity_used=quantity_used,
+    )
+    db.session.add(wop)
+    if order.status == 'open':
+        order.status = 'in_progress'
+
+    db.session.commit()
+    flash("Частта е маркирана като използвана.", "success")
+    return redirect(url_for("work_orders.view_order", order_id=order.id))
 

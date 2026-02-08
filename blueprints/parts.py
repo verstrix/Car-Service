@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 
 from models import db, Part, Role
+from sqlalchemy.exc import IntegrityError
 
 parts_bp = Blueprint("parts", __name__, url_prefix="/parts")
 
@@ -13,11 +14,21 @@ def list_parts():
             flash("Само мениджъри могат да управляват инвентара.", "danger")
             return redirect(url_for("parts.list_parts"))
 
-        part_number = request.form.get("part_number")
-        name = request.form.get("name")
+        part_number = (request.form.get("part_number") or "").strip()
+        name = (request.form.get("name") or "").strip()
         description = request.form.get("description")
-        quantity = int(request.form.get("quantity") or 0)
-        unit_price = float(request.form.get("unit_price") or 0)
+        try:
+            quantity = int(request.form.get("quantity") or 0)
+        except (ValueError, TypeError):
+            quantity = 0
+        try:
+            unit_price = float(request.form.get("unit_price") or 0)
+        except (ValueError, TypeError):
+            unit_price = 0.0
+
+        if not part_number or not name:
+            flash("Номер и име на частта са задължителни.", "danger")
+            return redirect(url_for("parts.list_parts"))
 
         part = Part(
             part_number=part_number,
@@ -27,7 +38,12 @@ def list_parts():
             unit_price=unit_price,
         )
         db.session.add(part)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            flash("Част с този номер вече съществува.", "danger")
+            return redirect(url_for("parts.list_parts"))
         flash("Частта е добавена.", "success")
         return redirect(url_for("parts.list_parts"))
 

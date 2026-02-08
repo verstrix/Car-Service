@@ -115,30 +115,61 @@
 <!-- MECHANIC COMPLETE JOB -->
 {% if current_user.role == 'mechanic' and order.status != 'completed' %}
 <div class="card mb-4">
-  <div class="card-header bg-dark text-white">Завърши работна поръчка</div>
+  <div class="card-header bg-dark text-white">Използване на части (механик)</div>
   <div class="card-body">
-    <form method="post" action="{{ url_for('work_orders.complete_order', order_id=order.id) }}" class="row g-2">
 
-      <div class="col-md-6">
-        <label class="form-label">Част</label>
-        <select class="form-select" name="part_id">
-          <option value="">No part</option>
-          {% for p in parts %}
-            <option value="{{ p.id }}">{{ p.name }} ({{ p.quantity }})</option>
-          {% endfor %}
-        </select>
-      </div>
+    {% if order.mechanic and order.mechanic.id != current_user.id %}
+      <p class="text-danger">Само назначен механик може да използва части за тази поръчка.</p>
+    {% else %}
+      <form method="post" action="{{ url_for('work_orders.use_part', order_id=order.id) }}" class="row g-2 mb-3">
 
-      <div class="col-md-3">
-        <label class="form-label">Количество</label>
-        <input class="form-control" type="number" name="quantity_used">
-      </div>
+        <div class="col-md-6">
+          <label class="form-label">Част</label>
+          <select class="form-select" name="part_id" required>
+            <option value="">Изберете част</option>
+            {% for p in parts %}
+              <option value="{{ p.id }}">{{ p.name }} ({{ p.quantity }})</option>
+            {% endfor %}
+          </select>
+        </div>
 
-      <div class="col-md-3 d-flex align-items-end">
-        <button class="btn btn-success w-100">Complete</button>
-      </div>
+        <div class="col-md-3">
+          <label class="form-label">Количество</label>
+          <input class="form-control" type="number" name="quantity_used" min="1" required>
+        </div>
 
-    </form>
+        <div class="col-md-3 d-flex align-items-end">
+          <button class="btn btn-warning w-100">Mark Used</button>
+        </div>
+
+      </form>
+
+      <hr />
+
+      <form method="post" action="{{ url_for('work_orders.complete_order', order_id=order.id) }}" class="row g-2">
+
+        <div class="col-md-6">
+          <label class="form-label">(Optional) Част при завършване</label>
+          <select class="form-select" name="part_id">
+            <option value="">No part</option>
+            {% for p in parts %}
+              <option value="{{ p.id }}">{{ p.name }} ({{ p.quantity }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">Количество</label>
+          <input class="form-control" type="number" name="quantity_used">
+        </div>
+
+        <div class="col-md-3 d-flex align-items-end">
+          <button class="btn btn-success w-100">Complete</button>
+        </div>
+
+      </form>
+    {% endif %}
+
   </div>
 </div>
 {% endif %}
