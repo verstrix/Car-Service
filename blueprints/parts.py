@@ -52,6 +52,13 @@ def list_parts():
     return render_template("parts.html", parts=parts)
 
 
+@parts_bp.route('/<int:part_id>')
+@login_required
+def part_details(part_id):
+    part = Part.query.get_or_404(part_id)
+    return render_template('part_details.html', part=part)
+
+
 @parts_bp.route("/delete/<int:part_id>", methods=["POST"])
 @login_required
 def delete_part(part_id):
