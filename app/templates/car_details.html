@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <h3 class="mb-0">Детайли за автомобила</h3>
+  <div class="d-flex gap-2">
+    <a class="btn btn-secondary" href="{{ url_for('list_cars') }}">Обратно</a>
+    {% if current_user.role == 'manager' %}<a class="btn btn-outline-primary" href="{{ url_for('edit_car', car_id=car.id) }}">Редакция</a>{% endif %}
+  </div>
+</div>
+<div class="card mb-4"><div class="card-body">
+  <h4 class="mb-3">{{ car.make }} {{ car.model }}{% if car.year %} ({{ car.year }}){% endif %}</h4>
+  <p class="mb-1"><strong>VIN:</strong> {{ car.vin }}</p>
+  <p class="mb-1"><strong>Рег. номер:</strong> {{ car.registration_number or '-' }}</p>
+  <p class="mb-1"><strong>Собственик:</strong> {{ car.owner_name }}</p>
+  <p class="mb-1"><strong>Телефон:</strong> {{ car.owner_phone or '-' }}</p>
+</div></div>
+<h4 class="mb-3">История на работните поръчки</h4>
+<div class="card"><div class="card-body p-0"><div class="table-responsive">
+<table class="table table-hover table-striped mb-0">
+<thead class="table-dark"><tr><th>ИД</th><th>Заглавие</th><th>Описание</th><th>Статус</th><th>Механик</th><th>Използвани части</th><th>Цена</th><th></th></tr></thead>
+<tbody>
+{% for o in orders %}
+<tr>
+  <td>{{ o.id }}</td><td>{{ o.title }}</td><td>{{ o.description }}</td><td><span class="badge {{ status_badge(o.status) }} status-pill">{{ status_label(o.status) }}</span></td><td>{{ o.mechanic.username if o.mechanic else '-' }}</td>
+  <td>{% if o.parts %}{% for p in o.parts %}{{ p.part.name }} ({{ p.quantity_used }})<br>{% endfor %}{% else %}-{% endif %}</td>
+  <td>{{ '%.2f'|format(o.total_cost) }} лв.</td>
+  <td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('work_order_pdf', order_id=o.id) }}">PDF</a></td>
+</tr>
+{% else %}
+<tr><td colspan="8" class="text-center text-muted">Няма работни поръчки за този автомобил.</td></tr>
+{% endfor %}
+</tbody></table></div></div></div>
+{% endblock %}

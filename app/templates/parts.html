@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 gap-3 flex-wrap">
+  <div>
+    <h3 class="mb-1">Инвентар на части</h3>
+    <p class="text-muted mb-0">Следи наличности, цени и минимални количества.</p>
+  </div>
+  <div class="d-flex gap-2 align-items-center">
+    <form method="get" class="d-flex gap-2">
+      <input class="form-control" name="q" value="{{ search or '' }}" placeholder="Търси по номер, име, описание...">
+      <button class="btn btn-outline-primary">Търси</button>
+      {% if search %}<a class="btn btn-outline-secondary" href="{{ url_for('list_parts') }}">Изчисти</a>{% endif %}
+    </form>
+    {% if current_user.role == 'manager' %}
+    <button class="btn btn-sm btn-primary" data-bs-toggle="collapse" data-bs-target="#addPartForm">Добави част</button>
+    {% endif %}
+  </div>
+</div>
+
+{% if current_user.role == 'manager' %}
+<div class="collapse mb-3" id="addPartForm">
+  <div class="card card-body">
+    <form method="post" enctype="multipart/form-data">
+      <div class="row g-2">
+        <div class="col-md-3"><input class="form-control" name="part_number" placeholder="Номер на част" required></div>
+        <div class="col-md-3"><input class="form-control" name="name" placeholder="Име" required></div>
+        <div class="col-md-2"><input class="form-control" name="quantity" placeholder="Количество" type="number" min="0"></div>
+        <div class="col-md-2"><input class="form-control" name="min_quantity" placeholder="Мин. наличност" type="number" min="0" value="5"></div>
+        <div class="col-md-2"><input class="form-control" name="unit_price" placeholder="Цена за брой" type="number" step="0.01" min="0"></div>
+        <div class="col-md-12 mt-2"><textarea class="form-control" name="description" placeholder="Описание"></textarea></div>
+        <div class="col-md-4 mt-2"><input class="form-control" type="file" name="image" accept="image/*"></div>
+      </div>
+      <button class="btn btn-success mt-3" type="submit">Запази</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<div class="parts-list">
+  {% for part in parts %}
+    <div class="part-item {% if part.quantity <= part.min_quantity %}part-low{% endif %}">
+      <div class="part-image">
+        {% if part.image_filename %}
+          <img src="{{ url_for('static', filename=part.image_filename) }}" alt="{{ part.name }}">
+        {% else %}
+          <div class="no-image"><i class="bi bi-box"></i></div>
+        {% endif %}
+      </div>
+      <div class="part-info">
+        <h5 class="part-name"><a href="{{ url_for('part_details', part_id=part.id) }}">{{ part.name }}</a></h5>
+        <p class="part-number">{{ part.part_number }}</p>
+        <p class="part-description">{{ part.description[:80] }}{% if part.description and part.description|length > 80 %}...{% endif %}</p>
+        <div class="part-meta">
+          <span class="meta-item"><strong>{{ part.quantity }}</strong> налични</span>
+          <span class="meta-item">Минимум: {{ part.min_quantity }}</span>
+          <span class="meta-item price">{{ "%.2f"|format(part.unit_price) }} лв.</span>
+        </div>
+      </div>
+      <div class="part-actions">
+        <a class="btn btn-sm btn-primary" href="{{ url_for('part_details', part_id=part.id) }}">Детайли</a>
+        {% if current_user.role == 'manager' %}
+          <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('edit_part', part_id=part.id) }}">Редакция</a>
+          <form method="post" action="{{ url_for('delete_part', part_id=part.id) }}" onsubmit="return confirm('Наистина ли искате да изтриете тази част?');">
+            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  {% else %}
+    <div class="card"><div class="card-body text-muted">Няма намерени части.</div></div>
+  {% endfor %}
+</div>
+{% endblock %}

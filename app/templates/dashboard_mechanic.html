@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="fw-bold">Табло на механика</h2>
+<p class="lead text-muted">Преглеждай назначените поръчки и добавяй използваните части.</p>
+<div class="card">
+  <div class="card-body">
+    <h5 class="mb-3">Моите поръчки</h5>
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead><tr><th>#</th><th>Заглавие</th><th>Автомобил</th><th>Статус</th><th>Последна промяна</th></tr></thead>
+        <tbody>
+          {% for order in assigned_orders %}
+          <tr><td>{{ order.id }}</td><td>{{ order.title }}</td><td>{{ order.car.make }} {{ order.car.model }}</td><td><span class="badge {{ status_badge(order.status) }} status-pill">{{ status_label(order.status) }}</span></td><td>{{ order.updated_at.strftime('%d.%m.%Y %H:%M') }}</td></tr>
+          {% else %}
+          <tr><td colspan="5" class="text-center text-muted">Няма възложени поръчки.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="fw-bold">Табло на клиента</h2>
+<p class="lead text-muted">Създавай поръчки за своите автомобили и следи историята им.</p>
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card"><div class="card-body"><h5>Моите автомобили</h5>
+      <ul class="list-group list-group-flush">
+        {% for car in client_cars %}
+        <li class="list-group-item px-0">{{ car.make }} {{ car.model }} — {{ car.registration_number or car.vin }}</li>
+        {% else %}
+        <li class="list-group-item px-0 text-muted">Няма добавени автомобили.</li>
+        {% endfor %}
+      </ul>
+    </div></div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card"><div class="card-body"><h5>Моите поръчки</h5>
+      <ul class="list-group list-group-flush">
+        {% for order in client_orders %}
+        <li class="list-group-item px-0 d-flex justify-content-between align-items-center gap-2"><span>#{{ order.id }} — {{ order.title }}</span> <span class="badge {{ status_badge(order.status) }} status-pill">{{ status_label(order.status) }}</span></li>
+        {% else %}
+        <li class="list-group-item px-0 text-muted">Няма създадени поръчки.</li>
+        {% endfor %}
+      </ul>
+    </div></div>
+  </div>
+</div>
+{% endblock %}

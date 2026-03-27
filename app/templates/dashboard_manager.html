@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="hero-inner text-start px-0 py-0 mb-4">
+  <h2 class="fw-bold">Табло на мениджъра</h2>
+  <p class="lead text-muted">Управление на автомобили, склад, поръчки и потребители.</p>
+</div>
+<div class="row g-3 mb-4">
+  <div class="col-md-3"><div class="card stat-card"><div class="card-body"><div class="small text-muted">Автомобили</div><div class="stat-number">{{ stats.cars }}</div></div></div></div>
+  <div class="col-md-3"><div class="card stat-card"><div class="card-body"><div class="small text-muted">Части</div><div class="stat-number">{{ stats.parts }}</div></div></div></div>
+  <div class="col-md-3"><div class="card stat-card"><div class="card-body"><div class="small text-muted">Поръчки</div><div class="stat-number">{{ stats.orders }}</div></div></div></div>
+  <div class="col-md-3"><div class="card stat-card warning"><div class="card-body"><div class="small text-muted">Ниска наличност</div><div class="stat-number">{{ stats.low_stock }}</div></div></div></div>
+</div>
+<div class="row g-3 mb-4">
+  <div class="col-md-3"><div class="card status-open-card"><div class="card-body"><div class="small text-muted">Приети</div><div class="stat-number">{{ stats.open_orders }}</div></div></div></div>
+  <div class="col-md-3"><div class="card status-progress-card"><div class="card-body"><div class="small text-muted">В ремонт</div><div class="stat-number">{{ stats.in_progress_orders }}</div></div></div></div>
+  <div class="col-md-3"><div class="card status-awaiting-card"><div class="card-body"><div class="small text-muted">Чакат части</div><div class="stat-number">{{ stats.awaiting_parts_orders }}</div></div></div></div>
+  <div class="col-md-3"><div class="card status-completed-card"><div class="card-body"><div class="small text-muted">Приключени</div><div class="stat-number">{{ stats.completed_orders }}</div></div></div></div>
+</div>
+<div class="card">
+  <div class="card-body">
+    <h5 class="mb-3">Последни работни поръчки</h5>
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead><tr><th>#</th><th>Заглавие</th><th>Автомобил</th><th>Статус</th><th>Обща цена</th></tr></thead>
+        <tbody>
+          {% for order in recent_orders %}
+          <tr><td>{{ order.id }}</td><td>{{ order.title }}</td><td>{{ order.car.make }} {{ order.car.model }}</td><td><span class="badge {{ status_badge(order.status) }} status-pill">{{ status_label(order.status) }}</span></td><td>{{ '%.2f'|format(order.total_cost) }} лв.</td></tr>
+          {% else %}
+          <tr><td colspan="5" class="text-center text-muted">Няма поръчки.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

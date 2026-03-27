@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3"><h3>Потребители</h3><button class="btn btn-sm btn-primary" data-bs-toggle="collapse" data-bs-target="#addUserForm">Добави потребител</button></div>
+<div class="collapse mb-3" id="addUserForm"><div class="card card-body">
+<form method="post"><div class="row g-2">
+  <div class="col-md-3"><input class="form-control" name="username" placeholder="Потребителско име" required></div>
+  <div class="col-md-3"><input class="form-control" name="password" type="password" placeholder="Парола" required></div>
+  <div class="col-md-2"><select class="form-select" name="role"><option value="manager">manager</option><option value="mechanic">mechanic</option><option value="client">client</option></select></div>
+  <div class="col-md-2"><input class="form-control" name="full_name" placeholder="Име"></div>
+  <div class="col-md-2"><input class="form-control" name="phone" placeholder="Телефон"></div>
+</div><button class="btn btn-success mt-3">Запази</button></form>
+</div></div>
+<div class="card"><div class="card-body p-0"><div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th>#</th><th>Потребител</th><th>Роля</th><th>Име</th><th>Телефон</th><th>Действия</th></tr></thead><tbody>
+{% for user in users %}
+<tr><td>{{ user.id }}</td><td>{{ user.username }}</td><td>{{ user.role }}</td><td>{{ user.full_name or '-' }}</td><td>{{ user.phone or '-' }}</td><td>{% if user.id != current_user.id %}<form method="post" action="{{ url_for('delete_user', user_id=user.id) }}" onsubmit="return confirm('Изтриване на потребителя?');"><button class="btn btn-sm btn-outline-danger">Изтрий</button></form>{% else %}<span class="text-muted">Текущ акаунт</span>{% endif %}</td></tr>
+{% endfor %}
+</tbody></table></div></div></div>
+{% endblock %}

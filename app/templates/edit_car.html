@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-3">Редакция на автомобил</h3>
+<div class="card"><div class="card-body">
+  <form method="post" enctype="multipart/form-data" class="row g-3">
+    <div class="col-md-4"><label class="form-label">VIN</label><input class="form-control" name="vin" value="{{ car.vin }}" required></div>
+    <div class="col-md-3"><label class="form-label">Рег. номер</label><input class="form-control" name="registration_number" value="{{ car.registration_number or '' }}"></div>
+    <div class="col-md-3"><label class="form-label">Марка</label><input class="form-control" name="make" value="{{ car.make }}" required></div>
+    <div class="col-md-2"><label class="form-label">Модел</label><input class="form-control" name="model" value="{{ car.model }}" required></div>
+    <div class="col-md-2"><label class="form-label">Година</label><input class="form-control" name="year" type="number" value="{{ car.year or '' }}"></div>
+    <div class="col-md-4"><label class="form-label">Собственик</label><input class="form-control" name="owner_name" value="{{ car.owner_name }}" required></div>
+    <div class="col-md-3"><label class="form-label">Телефон</label><input class="form-control" name="owner_phone" value="{{ car.owner_phone or '' }}"></div>
+    <div class="col-md-3"><label class="form-label">Клиент</label><select class="form-select" name="user_id"><option value="">Без свързан клиент</option>{% for client in clients %}<option value="{{ client.id }}" {% if car.user_id == client.id %}selected{% endif %}>{{ client.username }}{% if client.full_name %} — {{ client.full_name }}{% endif %}</option>{% endfor %}</select></div>
+    <div class="col-md-6"><label class="form-label">Нова снимка</label><input class="form-control" type="file" name="image" accept="image/*"></div>
+    {% if car.image_filename %}<div class="col-12 form-check ms-2"><input class="form-check-input" type="checkbox" name="remove_image" value="1" id="removeImage"><label class="form-check-label" for="removeImage">Премахни текущата снимка</label></div>{% endif %}
+    <div class="col-12 d-flex gap-2"><button class="btn btn-primary">Запази промените</button><a class="btn btn-outline-secondary" href="{{ url_for('car_details', car_id=car.id) }}">Отказ</a></div>
+  </form>
+</div></div>
+{% endblock %}

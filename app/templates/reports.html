@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-4">Справки</h3>
+<div class="row g-4 mb-4">
+  <div class="col-lg-3 col-md-6"><div class="card h-100 stat-card"><div class="card-body"><h6 class="text-muted">Приход от приключени поръчки</h6><div class="stat-number">{{ '%.2f'|format(monthly_income) }} лв.</div></div></div></div>
+  <div class="col-lg-3 col-md-6"><div class="card h-100 stat-card"><div class="card-body"><h6 class="text-muted">Средна стойност на поръчка</h6><div class="stat-number">{{ '%.2f'|format(average_order_value) }} лв.</div></div></div></div>
+  <div class="col-lg-3 col-md-6"><div class="card h-100 stat-card"><div class="card-body"><h6 class="text-muted">Общо поръчки</h6><div class="stat-number">{{ total_orders }}</div></div></div></div>
+  <div class="col-lg-3 col-md-6"><div class="card h-100 stat-card"><div class="card-body"><h6 class="text-muted">Стойност на наличностите</h6><div class="stat-number">{{ '%.2f'|format(total_parts_value) }} лв.</div></div></div></div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-3 col-md-6"><div class="card h-100 status-open-card"><div class="card-body"><div class="small text-muted">Приети</div><div class="stat-number">{{ status_counts['open'] }}</div></div></div></div>
+  <div class="col-lg-3 col-md-6"><div class="card h-100 status-progress-card"><div class="card-body"><div class="small text-muted">В ремонт</div><div class="stat-number">{{ status_counts['in_progress'] }}</div></div></div></div>
+  <div class="col-lg-3 col-md-6"><div class="card h-100 status-awaiting-card"><div class="card-body"><div class="small text-muted">Чакат части</div><div class="stat-number">{{ status_counts['awaiting_parts'] }}</div></div></div></div>
+  <div class="col-lg-3 col-md-6"><div class="card h-100 status-completed-card"><div class="card-body"><div class="small text-muted">Приключени</div><div class="stat-number">{{ status_counts['completed'] }}</div></div></div></div>
+</div>
+
+<div class="card"><div class="card-body"><h5>Части с ниска наличност</h5><div class="table-responsive"><table class="table align-middle"><thead><tr><th>Номер</th><th>Име</th><th>Наличност</th><th>Минимум</th></tr></thead><tbody>{% for part in low_stock_parts %}<tr><td>{{ part.part_number }}</td><td>{{ part.name }}</td><td><span class="badge text-bg-warning">{{ part.quantity }}</span></td><td>{{ part.min_quantity }}</td></tr>{% else %}<tr><td colspan="4" class="text-muted">Няма части под минималната наличност.</td></tr>{% endfor %}</tbody></table></div></div></div>
+{% endblock %}

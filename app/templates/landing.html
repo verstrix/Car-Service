@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="hero-landing rounded-4 overflow-hidden">
+  <div class="hero-inner">
+    <h1 class="display-5 fw-bold mb-3">Добре дошли в Car Service</h1>
+    <p class="lead mb-4">Уеб базирана система за управление на автосервиз с модули за автомобили, работни поръчки, инвентар на части и потребители.</p>
+    <p class="mb-3">Влезте, за да разгледате демо акаунтите и функционалностите на проекта.</p>
+    <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg px-4 py-2 mt-2"><i class="bi bi-box-arrow-in-right me-1"></i> Вход</a>
+    <div class="mt-4 text-light small">Demo акаунти: manager / manager123, mechanic / mechanic123, client / client123</div>
+    <div class="role-cards">
+      <div class="role-card"><h5>Мениджър</h5><p>Управлява автомобили, части, работни поръчки, потребители и справки.</p></div>
+      <div class="role-card"><h5>Механик</h5><p>Обновява статуси, добавя използвани части и приключва поръчки.</p></div>
+      <div class="role-card"><h5>Клиент</h5><p>Създава поръчки за свои автомобили и следи историята на обслужванията.</p></div>
+    </div>
+  </div>
+  <div class="hero-credit">Developed for diploma project — {{ now().year }}</div>
+</div>
+{% endblock %}

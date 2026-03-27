@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-3">Редакция на работна поръчка #{{ order.id }}</h3>
+<div class="card"><div class="card-body">
+  <form method="post" class="row g-3">
+    <div class="col-md-6"><label class="form-label">Заглавие</label><input class="form-control" name="title" value="{{ order.title }}" required></div>
+    <div class="col-md-3"><label class="form-label">Статус</label><select class="form-select" name="status"><option value="open" {% if order.status == 'open' %}selected{% endif %}>Приета</option><option value="in_progress" {% if order.status == 'in_progress' %}selected{% endif %}>В ремонт</option><option value="awaiting_parts" {% if order.status == 'awaiting_parts' %}selected{% endif %}>Чака части</option><option value="completed" {% if order.status == 'completed' %}selected{% endif %}>Приключена</option></select></div>
+    <div class="col-md-3"><label class="form-label">Цена труд</label><input class="form-control" name="labor_cost" type="number" min="0" step="0.01" value="{{ order.labor_cost }}"></div>
+    {% if current_user.role == 'manager' %}
+    <div class="col-md-6"><label class="form-label">Автомобил</label><select class="form-select" name="car_id">{% for car in cars %}<option value="{{ car.id }}" {% if order.car_id == car.id %}selected{% endif %}>{{ car.make }} {{ car.model }} ({{ car.registration_number or car.vin }})</option>{% endfor %}</select></div>
+    <div class="col-md-6"><label class="form-label">Механик</label><select class="form-select" name="mechanic_id"><option value="">Без механик</option>{% for mechanic in mechanics %}<option value="{{ mechanic.id }}" {% if order.mechanic_id == mechanic.id %}selected{% endif %}>{{ mechanic.username }}</option>{% endfor %}</select></div>
+    {% else %}
+    <div class="col-md-6"><label class="form-label">Механик</label><input class="form-control" value="{{ order.mechanic.username if order.mechanic else current_user.username }}" disabled></div>
+    {% endif %}
+    <div class="col-12"><label class="form-label">Описание</label><textarea class="form-control" name="description" required>{{ order.description }}</textarea></div>
+    <div class="col-12"><label class="form-label">Бележки</label><textarea class="form-control" name="notes">{{ order.notes or '' }}</textarea></div>
+    <div class="col-12 d-flex gap-2"><button class="btn btn-primary">Запази промените</button><a class="btn btn-outline-secondary" href="{{ url_for('list_work_orders') }}">Отказ</a><a class="btn btn-outline-primary" href="{{ url_for('work_order_pdf', order_id=order.id) }}">Изтегли PDF</a></div>
+  </form>
+</div></div>
+{% endblock %}
