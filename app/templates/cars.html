@@ -50,9 +50,9 @@
   <div class="card h-100">
     {% if car.image_filename %}
     <img src="{{ url_for('static', filename=car.image_filename) }}" class="card-img-top" style="height:180px;object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-    <div style="display:none;height:180px;background:linear-gradient(90deg,#e2e8f0,#ffffff);align-items:center;justify-content:center;color:#64748b;font-weight:600">Няма изображение</div>
+    <div class="card-media-placeholder" style="display:none;">Няма изображение</div>
     {% else %}
-    <div style="height:180px;background:linear-gradient(90deg,#e2e8f0,#ffffff);display:flex;align-items:center;justify-content:center;color:#64748b;font-weight:600">Няма изображение</div>
+    <div class="card-media-placeholder">Няма изображение</div>
     {% endif %}
     <div class="card-body d-flex flex-column">
       <h5 class="card-title"><a href="{{ url_for('car_details', car_id=car.id) }}">{{ car.make }} {{ car.model }}</a></h5>
