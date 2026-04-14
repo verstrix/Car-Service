@@ -7,14 +7,6 @@
   --card-bg:#ffffff;
   --surface:#ffffff;
 }
-:root.dark{
-  --accent:#2dd4bf;
-  --accent-dark:#14b8a6;
-  --muted:#9ca3af;
-  --bg:#0b1220;
-  --card-bg:#071020;
-  --surface:#071824;
-}
 html,body{height:100%}
 body{background:var(--bg);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;color:#111;margin:0}
 .container{max-width:1220px}
@@ -46,20 +38,6 @@ body{background:var(--bg);font-family:Inter,system-ui,-apple-system,"Segoe UI",R
 .part-meta{display:flex;flex-wrap:wrap;gap:1rem;margin-top:.75rem;font-size:.9rem}.meta-item.price{color:var(--accent);font-weight:600;font-size:1rem}.part-actions{display:flex;gap:.5rem;align-items:center}
 .accordion-button:not(.collapsed){background:rgba(13,148,136,.08);color:#0f172a;font-weight:600}
 *{transition:color .12s ease,background-color .12s ease,border-color .12s ease}
-body.dark,html.dark{background:var(--bg);color:#e6eef0}
-body.dark .card,html.dark .card{background:var(--card-bg);border-color:rgba(255,255,255,.04);box-shadow:0 6px 20px rgba(2,6,23,.6)}
-body.dark .navbar,html.dark .navbar{background:var(--surface)!important;border-bottom-color:rgba(255,255,255,.03)}
-body.dark .nav-link,html.dark .nav-link{color:var(--muted)!important}
-body.dark .nav-link.active,body.dark .nav-link:hover,html.dark .nav-link.active,html.dark .nav-link:hover{color:var(--accent)!important}
-body.dark .navbar-brand,body.dark .navbar-text,html.dark .navbar-brand,html.dark .navbar-text{color:#e6eef0!important}
-body.dark .table,html.dark .table{color:#e6eef0}
-body.dark .part-item,html.dark .part-item{background:var(--card-bg);border-color:rgba(255,255,255,.04)}
-body.dark .part-image,html.dark .part-image{background:#1a2332}
-body.dark .part-name a,html.dark .part-name a{color:#e6eef0}
-body.dark .part-number,body.dark .part-description,html.dark .part-number,html.dark .part-description{color:#b0c4de}
-body.dark .list-group-item,html.dark .list-group-item{background:transparent;color:#e6eef0;border-color:rgba(255,255,255,.08)}
-body.dark .accordion-button,html.dark .accordion-button{background:#0f172a;color:#e6eef0}
-body.dark .accordion-item,html.dark .accordion-item{background:transparent;border-color:rgba(255,255,255,.06)}
 @media (max-width:768px){.part-item{grid-template-columns:80px 1fr;gap:1rem}.part-image{width:80px;height:80px}.part-actions{flex-direction:column;gap:.25rem;align-self:start}}
 @media (max-width:576px){#fabAdd{right:12px;bottom:16px;width:52px;height:52px}.navbar-brand{font-size:1rem}}
 
@@ -74,8 +52,3 @@ body.dark .accordion-item,html.dark .accordion-item{background:transparent;borde
 .status-awaiting-card{border-left:4px solid #f59e0b}
 .status-completed-card{border-left:4px solid #16a34a}
 .text-bg-warning{color:#3b2f05!important}
-body.dark .text-bg-light,html.dark .text-bg-light{background:#1f2937!important;color:#e5e7eb!important}
-body.dark .text-bg-secondary,html.dark .text-bg-secondary{background:#475569!important}
-body.dark .text-bg-primary,html.dark .text-bg-primary{background:#2563eb!important}
-body.dark .text-bg-warning,html.dark .text-bg-warning{background:#f59e0b!important;color:#281b00!important}
-body.dark .text-bg-success,html.dark .text-bg-success{background:#16a34a!important}

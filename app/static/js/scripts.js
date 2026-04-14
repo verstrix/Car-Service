@@ -8,11 +8,8 @@
     if(icon) icon.className = dark ? 'bi bi-moon-stars' : 'bi bi-sun';
   }
   function initThemeToggle(){
-    const saved = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    setTheme(saved === 'dark' || (!saved && prefersDark));
-    const btn = document.getElementById('themeToggle');
-    if(btn) btn.addEventListener('click', ()=> setTheme(!document.documentElement.classList.contains('dark')));
+    document.documentElement.classList.remove('dark');
+    localStorage.setItem('theme','light');
   }
   function initSearch(){
     const input = document.getElementById('globalSearch');

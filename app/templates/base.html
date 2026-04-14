@@ -39,9 +39,6 @@
             <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
           </div>
         </li>
-        <li class="nav-item">
-          <button id="themeToggle" class="btn btn-outline-primary btn-sm" title="Смяна на тема"><i class="bi bi-sun" id="themeIcon"></i></button>
-        </li>
         <li class="nav-item"><span class="navbar-text"><i class="bi bi-person-circle"></i> {{ current_user.username }} ({{ current_user.role }})</span></li>
         <li class="nav-item"><a class="nav-link text-danger" href="{{ url_for('logout') }}">Изход</a></li>
         {% else %}

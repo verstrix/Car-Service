@@ -492,9 +492,9 @@ def register_routes(app):
         if current_user.role == 'mechanic':
             query = query.filter((WorkOrder.mechanic_id == current_user.id) | (WorkOrder.mechanic_id.is_(None)))
         elif current_user.role == 'client':
-            query = query.filter_by(client_id=current_user.id)
+            query = query.filter(WorkOrder.client_id == current_user.id)
         if selected_status in ALLOWED_WORK_ORDER_STATUSES:
-            query = query.filter_by(status=selected_status)
+            query = query.filter(WorkOrder.status == selected_status)
         if search:
             like = f'%{search}%'
             query = query.filter(
