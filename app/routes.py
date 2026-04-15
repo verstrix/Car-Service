@@ -7,6 +7,7 @@ from uuid import uuid4
 from flask import render_template, request, redirect, url_for, flash, current_app, send_file
 from flask_login import login_user, logout_user, login_required, current_user
 from reportlab.lib.pagesizes import A4
+from reportlab.lib.utils import simpleSplit
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
@@ -26,6 +27,11 @@ STATUS_META = {
     'awaiting_parts': {'label': 'Чака части', 'badge': 'text-bg-warning'},
     'completed': {'label': 'Приключена', 'badge': 'text-bg-success'},
 }
+ROLE_META = {
+    'manager': 'Мениджър',
+    'mechanic': 'Механик',
+    'client': 'Клиент',
+}
 
 
 def register_routes(app):
@@ -33,7 +39,7 @@ def register_routes(app):
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS
 
     def current_max_year() -> int:
-        return datetime.utcnow().year + 1
+        return datetime.now().year + 1
 
     def parse_year(year_raw: str):
         year_raw = (year_raw or '').strip()
@@ -48,6 +54,50 @@ def register_routes(app):
 
     def normalize_phone(phone: str) -> str:
         return (phone or '').strip()
+
+    def resolve_optional_int(raw_value, field_label: str):
+        raw_value = (raw_value or '').strip()
+        if not raw_value:
+            return None, None
+        if not raw_value.isdigit():
+            return None, f'Невалидна стойност за {field_label}.'
+        return int(raw_value), None
+
+    def client_phone(user: User | None) -> str | None:
+        normalized = normalize_phone(getattr(user, 'phone', ''))
+        return normalized or None
+
+    def client_car_filter(user: User):
+        clauses = [Car.user_id == user.id]
+        phone = client_phone(user)
+        if phone:
+            clauses.append(Car.owner_phone == phone)
+        return or_(*clauses)
+
+    def client_order_filter(user: User):
+        clauses = [WorkOrder.client_id == user.id, Car.user_id == user.id]
+        phone = client_phone(user)
+        if phone:
+            clauses.append(Car.owner_phone == phone)
+        return or_(*clauses)
+
+    def linked_client_id_for_car(car: Car):
+        if car.user_id:
+            return car.user_id
+        if not car.owner_phone:
+            return None
+        matching_clients = User.query.filter_by(role='client', phone=car.owner_phone).all()
+        if len(matching_clients) == 1:
+            return matching_clients[0].id
+        return None
+
+    def resolve_mechanic(mechanic_id):
+        if mechanic_id is None:
+            return None, None
+        mechanic = User.query.filter_by(id=mechanic_id, role='mechanic').first()
+        if mechanic is None:
+            return None, 'Избраният механик не съществува.'
+        return mechanic, None
 
     def save_image(file_storage, category: str = 'misc'):
         if not file_storage or not file_storage.filename:
@@ -94,17 +144,23 @@ def register_routes(app):
     def status_badge(status: str) -> str:
         return STATUS_META.get(status, {}).get('badge', 'text-bg-light')
 
+    def role_label(role: str) -> str:
+        return ROLE_META.get(role, role)
+
     def car_access_allowed(car: Car) -> bool:
         if current_user.role in {'manager', 'mechanic'}:
             return True
-        return car.user_id == current_user.id or car.owner_phone == current_user.phone
+        if car.user_id == current_user.id:
+            return True
+        phone = client_phone(current_user)
+        return bool(phone and car.owner_phone == phone)
 
     def order_access_allowed(order: WorkOrder) -> bool:
         if current_user.role == 'manager':
             return True
         if current_user.role == 'mechanic':
             return order.mechanic_id in (None, current_user.id)
-        return order.client_id == current_user.id
+        return order.client_id == current_user.id or car_access_allowed(order.car)
 
     def order_edit_allowed(order: WorkOrder) -> bool:
         if current_user.role == 'manager':
@@ -119,6 +175,7 @@ def register_routes(app):
             'status_label': status_label,
             'status_badge': status_badge,
             'status_meta': STATUS_META,
+            'role_label': role_label,
         }
 
     @app.route('/')
@@ -169,8 +226,13 @@ def register_routes(app):
         if current_user.role == 'mechanic':
             assigned = WorkOrder.query.filter_by(mechanic_id=current_user.id).order_by(WorkOrder.updated_at.desc()).all()
             return render_template('dashboard_mechanic.html', stats=stats, assigned_orders=assigned)
-        client_cars = Car.query.filter((Car.user_id == current_user.id) | (Car.owner_phone == current_user.phone)).all()
-        client_orders = WorkOrder.query.filter_by(client_id=current_user.id).order_by(WorkOrder.created_at.desc()).all()
+        client_cars = Car.query.filter(client_car_filter(current_user)).order_by(Car.created_at.desc()).all()
+        client_orders = (
+            WorkOrder.query.join(Car)
+            .filter(client_order_filter(current_user))
+            .order_by(WorkOrder.created_at.desc())
+            .all()
+        )
         return render_template('dashboard_client.html', stats=stats, client_cars=client_cars, client_orders=client_orders)
 
     @app.route('/cars', methods=['GET', 'POST'])
@@ -230,7 +292,7 @@ def register_routes(app):
         search = request.args.get('q', '').strip()
         query = Car.query.order_by(Car.created_at.desc())
         if current_user.role == 'client':
-            query = query.filter((Car.user_id == current_user.id) | (Car.owner_phone == current_user.phone))
+            query = query.filter(client_car_filter(current_user))
         if search:
             like = f'%{search}%'
             query = query.filter(
@@ -316,6 +378,9 @@ def register_routes(app):
     @role_required('manager')
     def delete_car(car_id):
         car = Car.query.get_or_404(car_id)
+        if car.orders:
+            flash('Автомобилът не може да бъде изтрит, защото има свързани работни поръчки.', 'danger')
+            return redirect(url_for('list_cars'))
         remove_image(car.image_filename)
         db.session.delete(car)
         db.session.commit()
@@ -437,6 +502,9 @@ def register_routes(app):
     @role_required('manager')
     def delete_part(part_id):
         part = Part.query.get_or_404(part_id)
+        if part.order_links:
+            flash('Частта не може да бъде изтрита, защото вече е използвана в работни поръчки.', 'danger')
+            return redirect(url_for('list_parts'))
         remove_image(part.image_filename)
         db.session.delete(part)
         db.session.commit()
@@ -447,16 +515,30 @@ def register_routes(app):
     @login_required
     def list_work_orders():
         if request.method == 'POST':
+            if current_user.role not in {'manager', 'client'}:
+                flash('Само мениджър или клиент може да създава работни поръчки.', 'danger')
+                return redirect(url_for('list_work_orders'))
+
             title = request.form.get('title', '').strip()
             description = request.form.get('description', '').strip()
-            car_id = request.form.get('car_id')
-            mechanic_id = request.form.get('mechanic_id') or None
+            car_id, car_id_error = resolve_optional_int(request.form.get('car_id'), 'автомобил')
+            mechanic_id, mechanic_id_error = resolve_optional_int(request.form.get('mechanic_id'), 'механик')
             labor_cost_raw = request.form.get('labor_cost', '0').strip()
             notes = request.form.get('notes', '').strip()
             if not title or not description or not car_id:
                 flash('Заглавие, описание и автомобил са задължителни.', 'danger')
                 return redirect(url_for('list_work_orders'))
-            car = Car.query.get_or_404(int(car_id))
+            if car_id_error:
+                flash(car_id_error, 'danger')
+                return redirect(url_for('list_work_orders'))
+            if mechanic_id_error:
+                flash(mechanic_id_error, 'danger')
+                return redirect(url_for('list_work_orders'))
+            mechanic, mechanic_lookup_error = resolve_mechanic(mechanic_id)
+            if mechanic_lookup_error:
+                flash(mechanic_lookup_error, 'danger')
+                return redirect(url_for('list_work_orders'))
+            car = Car.query.get_or_404(car_id)
             if current_user.role == 'client' and not car_access_allowed(car):
                 flash('Можете да създавате поръчки само за свои автомобили.', 'danger')
                 return redirect(url_for('list_work_orders'))
@@ -474,8 +556,8 @@ def register_routes(app):
                 title=title,
                 description=description,
                 car_id=car.id,
-                mechanic_id=int(mechanic_id) if mechanic_id else None,
-                client_id=current_user.id if current_user.role == 'client' else car.user_id,
+                mechanic_id=mechanic.id if current_user.role == 'manager' and mechanic else None,
+                client_id=current_user.id if current_user.role == 'client' else linked_client_id_for_car(car),
                 created_by_id=current_user.id,
                 labor_cost=labor_cost,
                 notes=notes,
@@ -492,7 +574,7 @@ def register_routes(app):
         if current_user.role == 'mechanic':
             query = query.filter((WorkOrder.mechanic_id == current_user.id) | (WorkOrder.mechanic_id.is_(None)))
         elif current_user.role == 'client':
-            query = query.filter(WorkOrder.client_id == current_user.id)
+            query = query.filter(client_order_filter(current_user))
         if selected_status in ALLOWED_WORK_ORDER_STATUSES:
             query = query.filter(WorkOrder.status == selected_status)
         if search:
@@ -511,7 +593,7 @@ def register_routes(app):
             )
         work_orders = query.all()
         if current_user.role == 'client':
-            cars = Car.query.filter((Car.user_id == current_user.id) | (Car.owner_phone == current_user.phone)).all()
+            cars = Car.query.filter(client_car_filter(current_user)).order_by(Car.make.asc(), Car.model.asc()).all()
         else:
             cars = Car.query.order_by(Car.make.asc(), Car.model.asc()).all()
         mechanics = User.query.filter_by(role='mechanic').all()
@@ -520,8 +602,8 @@ def register_routes(app):
         if current_user.role == 'mechanic':
             status_counts_query = status_counts_query.filter((WorkOrder.mechanic_id == current_user.id) | (WorkOrder.mechanic_id.is_(None)))
         elif current_user.role == 'client':
-            status_counts_query = status_counts_query.filter_by(client_id=current_user.id)
-        status_counts = {code: status_counts_query.filter_by(status=code).count() for code in ALLOWED_WORK_ORDER_STATUSES}
+            status_counts_query = status_counts_query.join(Car).filter(client_order_filter(current_user))
+        status_counts = {code: status_counts_query.filter(WorkOrder.status == code).count() for code in ALLOWED_WORK_ORDER_STATUSES}
         total_visible_orders = sum(status_counts.values())
         return render_template(
             'work_orders.html',
@@ -550,8 +632,8 @@ def register_routes(app):
             notes = request.form.get('notes', '').strip()
             labor_cost_raw = request.form.get('labor_cost', '0').strip()
             requested_status = request.form.get('status', order.status)
-            mechanic_id = request.form.get('mechanic_id') or None
-            car_id = request.form.get('car_id') or str(order.car_id)
+            mechanic_id, mechanic_id_error = resolve_optional_int(request.form.get('mechanic_id'), 'механик')
+            car_id, car_id_error = resolve_optional_int(request.form.get('car_id') or str(order.car_id), 'автомобил')
 
             if not title or not description:
                 flash('Заглавие и описание са задължителни.', 'danger')
@@ -566,11 +648,23 @@ def register_routes(app):
             if requested_status not in ALLOWED_WORK_ORDER_STATUSES:
                 flash('Невалиден статус.', 'danger')
                 return redirect(url_for('edit_work_order', order_id=order.id))
+            if car_id_error:
+                flash(car_id_error, 'danger')
+                return redirect(url_for('edit_work_order', order_id=order.id))
+            if mechanic_id_error:
+                flash(mechanic_id_error, 'danger')
+                return redirect(url_for('edit_work_order', order_id=order.id))
+            mechanic, mechanic_lookup_error = resolve_mechanic(mechanic_id)
+            if mechanic_lookup_error:
+                flash(mechanic_lookup_error, 'danger')
+                return redirect(url_for('edit_work_order', order_id=order.id))
             if current_user.role == 'manager':
-                order.car_id = int(car_id)
-                order.mechanic_id = int(mechanic_id) if mechanic_id else None
+                selected_car = Car.query.get_or_404(car_id)
+                order.car_id = selected_car.id
+                order.client_id = linked_client_id_for_car(selected_car)
+                order.mechanic_id = mechanic.id if mechanic else None
             elif current_user.role == 'mechanic' and order.mechanic_id in (None, current_user.id):
-                order.mechanic_id = current_user.id if mechanic_id else order.mechanic_id
+                order.mechanic_id = current_user.id
             order.title = title
             order.description = description
             order.notes = notes
@@ -589,13 +683,20 @@ def register_routes(app):
             flash('Нямате право да редактирате тази поръчка.', 'danger')
             return redirect(url_for('list_work_orders'))
         status = request.form.get('status', 'open')
-        mechanic_id = request.form.get('mechanic_id') or None
+        mechanic_id, mechanic_id_error = resolve_optional_int(request.form.get('mechanic_id'), 'механик')
         if status not in ALLOWED_WORK_ORDER_STATUSES:
             flash('Невалиден статус.', 'danger')
             return redirect(url_for('list_work_orders'))
+        if mechanic_id_error:
+            flash(mechanic_id_error, 'danger')
+            return redirect(url_for('list_work_orders'))
+        mechanic, mechanic_lookup_error = resolve_mechanic(mechanic_id)
+        if mechanic_lookup_error:
+            flash(mechanic_lookup_error, 'danger')
+            return redirect(url_for('list_work_orders'))
         order.status = status
         if current_user.role == 'manager':
-            order.mechanic_id = int(mechanic_id) if mechanic_id else None
+            order.mechanic_id = mechanic.id if mechanic else None
         elif current_user.role == 'mechanic' and order.mechanic_id in (None, current_user.id):
             order.mechanic_id = current_user.id
         order.notes = request.form.get('notes', order.notes)
@@ -610,10 +711,13 @@ def register_routes(app):
         if not order_edit_allowed(order):
             flash('Нямате право да добавяте части към тази поръчка.', 'danger')
             return redirect(url_for('list_work_orders'))
-        part_id = request.form.get('part_id')
+        part_id, part_id_error = resolve_optional_int(request.form.get('part_id'), 'част')
         quantity_raw = request.form.get('quantity_used', '1')
         if not part_id:
             flash('Изберете част.', 'danger')
+            return redirect(url_for('list_work_orders'))
+        if part_id_error:
+            flash(part_id_error, 'danger')
             return redirect(url_for('list_work_orders'))
         try:
             quantity = int(quantity_raw)
@@ -622,7 +726,7 @@ def register_routes(app):
         except ValueError:
             flash('Количеството трябва да е положително число.', 'danger')
             return redirect(url_for('list_work_orders'))
-        part = Part.query.get_or_404(int(part_id))
+        part = Part.query.get_or_404(part_id)
         if part.quantity < quantity:
             flash(f'Недостатъчна наличност за {part.name}.', 'danger')
             return redirect(url_for('list_work_orders'))
@@ -647,7 +751,10 @@ def register_routes(app):
             flash('Нямате достъп до тази поръчка.', 'danger')
             return redirect(url_for('list_work_orders'))
 
+        windows_font_root = os.path.join(os.environ.get('WINDIR', 'C:\\Windows'), 'Fonts')
         font_candidates = [
+            os.path.join(windows_font_root, 'arial.ttf'),
+            os.path.join(windows_font_root, 'calibri.ttf'),
             '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
             '/usr/share/fonts/dejavu/DejaVuSans.ttf',
         ]
@@ -666,14 +773,16 @@ def register_routes(app):
         width, height = A4
         y = height - 50
 
-        def line(text, size=11, gap=18, bold=False):
+        def line(text, size=11, gap=18):
             nonlocal y
-            if y < 60:
-                c.showPage()
-                y = height - 50
-            c.setFont(font_name, size)
-            c.drawString(50, y, str(text))
-            y -= gap
+            wrapped_lines = simpleSplit(str(text), font_name, size, width - 100) or ['']
+            for wrapped_line in wrapped_lines:
+                if y < 60:
+                    c.showPage()
+                    y = height - 50
+                c.setFont(font_name, size)
+                c.drawString(50, y, wrapped_line)
+                y -= gap
 
         c.setTitle(f'work_order_{order.id}.pdf')
         line('Сервизна поръчка', size=18)
@@ -729,6 +838,9 @@ def register_routes(app):
             if not username or not password:
                 flash('Потребителско име и парола са задължителни.', 'danger')
                 return redirect(url_for('manage_users'))
+            if len(password) < 6:
+                flash('Паролата трябва да бъде поне 6 символа.', 'danger')
+                return redirect(url_for('manage_users'))
             if role not in {'manager', 'mechanic', 'client'}:
                 flash('Невалидна роля.', 'danger')
                 return redirect(url_for('manage_users'))
@@ -751,6 +863,18 @@ def register_routes(app):
         if user.id == current_user.id:
             flash('Не можете да изтриете текущия си акаунт.', 'danger')
             return redirect(url_for('manage_users'))
+        linked_reasons = []
+        if Car.query.filter_by(user_id=user.id).first():
+            linked_reasons.append('свързани автомобили')
+        if WorkOrder.query.filter_by(client_id=user.id).first():
+            linked_reasons.append('клиентски поръчки')
+        if WorkOrder.query.filter_by(mechanic_id=user.id).first():
+            linked_reasons.append('назначени поръчки')
+        if WorkOrder.query.filter_by(created_by_id=user.id).first():
+            linked_reasons.append('създадени поръчки')
+        if linked_reasons:
+            flash(f'Потребителят не може да бъде изтрит, защото има {", ".join(linked_reasons)}.', 'danger')
+            return redirect(url_for('manage_users'))
         db.session.delete(user)
         db.session.commit()
         flash('Потребителят е изтрит.', 'info')
@@ -761,7 +885,9 @@ def register_routes(app):
     def reports():
         low_stock_parts = Part.query.filter(Part.quantity <= Part.min_quantity).order_by(Part.quantity.asc()).all()
         completed_orders = WorkOrder.query.filter_by(status='completed').all()
-        monthly_income = round(sum(order.total_cost for order in completed_orders), 2)
+        start_of_month = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        completed_this_month = [order for order in completed_orders if order.updated_at and order.updated_at >= start_of_month]
+        monthly_income = round(sum(order.total_cost for order in completed_this_month), 2)
         status_counts = {code: WorkOrder.query.filter_by(status=code).count() for code in ALLOWED_WORK_ORDER_STATUSES}
         total_orders = sum(status_counts.values())
         total_parts_value = round(sum((part.quantity or 0) * (part.unit_price or 0) for part in Part.query.all()), 2)

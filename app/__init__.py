@@ -13,8 +13,8 @@ login_manager.login_message = 'Моля, влезте в системата.'
 login_manager.login_message_category = 'warning'
 
 
-def create_app():
-    app = Flask(__name__, instance_relative_config=True)
+def create_app(config_overrides=None, instance_path=None):
+    app = Flask(__name__, instance_relative_config=True, instance_path=instance_path)
     os.makedirs(app.instance_path, exist_ok=True)
 
     upload_root = os.path.join(app.root_path, 'static', 'uploads')
@@ -27,6 +27,10 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = upload_root
     app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
+    app.config['SEED_DATABASE'] = True
+
+    if config_overrides:
+        app.config.update(config_overrides)
 
     db.init_app(app)
     login_manager.init_app(app)
@@ -35,11 +39,11 @@ def create_app():
 
     @login_manager.user_loader
     def load_user(user_id):
-        return User.query.get(int(user_id))
+        return db.session.get(User, int(user_id))
 
     @app.context_processor
     def inject_now():
-        return {'now': datetime.utcnow}
+        return {'now': datetime.now}
 
     @app.errorhandler(404)
     def page_not_found(error):
@@ -59,7 +63,8 @@ def create_app():
 
     with app.app_context():
         db.create_all()
-        seed_database()
+        if app.config.get('SEED_DATABASE', True):
+            seed_database()
 
     return app
 

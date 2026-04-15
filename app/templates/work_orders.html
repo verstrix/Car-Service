@@ -45,18 +45,26 @@
 <div class="card mb-4">
   <div class="card-body">
     <h5 class="mb-3">Нова работна поръчка</h5>
+    {% if cars %}
     <form method="post" class="row g-3">
       <div class="col-md-4"><input class="form-control" name="title" placeholder="Заглавие" required></div>
       <div class="col-md-4"><select class="form-select" name="car_id" required><option value="">Избери автомобил</option>{% for car in cars %}<option value="{{ car.id }}">{{ car.make }} {{ car.model }} ({{ car.registration_number or car.vin }})</option>{% endfor %}</select></div>
       <div class="col-md-4"><input class="form-control" name="labor_cost" type="number" step="0.01" min="0" placeholder="Цена труд"></div>
       <div class="col-md-6"><textarea class="form-control" name="description" placeholder="Описание" required></textarea></div>
-      <div class="col-md-3"><select class="form-select" name="mechanic_id"><option value="">Избери механик</option>{% for mechanic in mechanics %}<option value="{{ mechanic.id }}">{{ mechanic.username }}</option>{% endfor %}</select></div>
       {% if current_user.role == 'manager' %}
+      <div class="col-md-3"><select class="form-select" name="mechanic_id"><option value="">Избери механик</option>{% for mechanic in mechanics %}<option value="{{ mechanic.id }}">{{ mechanic.username }}</option>{% endfor %}</select></div>
       <div class="col-md-3"><select class="form-select" name="status"><option value="open">Приета</option><option value="in_progress">В ремонт</option><option value="awaiting_parts">Чака части</option><option value="completed">Приключена</option></select></div>
+      {% else %}
+      <div class="col-md-6 d-flex align-items-center">
+        <div class="small text-muted">Клиентските поръчки се създават автоматично със статус „Приета“ и без назначен механик.</div>
+      </div>
       {% endif %}
       <div class="col-12"><textarea class="form-control" name="notes" placeholder="Бележки"></textarea></div>
       <div class="col-12"><button class="btn btn-primary">Създай поръчка</button></div>
     </form>
+    {% else %}
+    <div class="alert alert-info mb-0">Няма налични автомобили за създаване на поръчка.</div>
+    {% endif %}
   </div>
 </div>
 {% endif %}
@@ -67,8 +75,14 @@
     <h2 class="accordion-header" id="heading{{ order.id }}">
       <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ order.id }}" aria-expanded="false" aria-controls="collapse{{ order.id }}">
         <div class="d-flex flex-column flex-md-row justify-content-between w-100 me-3 gap-2 align-items-start align-items-md-center">
-          <div><span class="fw-semibold">#{{ order.id }} — {{ order.title }}</span><span class="text-muted ms-md-2">{{ order.car.make }} {{ order.car.model }}</span></div>
-          <div class="d-flex flex-wrap align-items-center gap-2"><span class="badge {{ status_badge(order.status) }} status-pill">{{ status_label(order.status) }}</span><span class="badge text-bg-light">{{ '%.2f'|format(order.total_cost) }} лв.</span></div>
+          <div>
+            <span class="fw-semibold">#{{ order.id }} — {{ order.title }}</span>
+            <span class="text-muted ms-md-2">{{ order.car.make }} {{ order.car.model }}</span>
+          </div>
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <span class="badge {{ status_badge(order.status) }} status-pill">{{ status_label(order.status) }}</span>
+            <span class="badge text-bg-light">{{ '%.2f'|format(order.total_cost) }} лв.</span>
+          </div>
         </div>
       </button>
     </h2>
@@ -76,10 +90,19 @@
       <div class="accordion-body">
         <div class="row g-4">
           <div class="col-lg-6">
+            <div class="detail-meta-grid mb-3">
+              <div class="detail-meta-box">
+                <span class="detail-meta-label">Създадена</span>
+                <strong>{{ order.created_at.strftime('%d.%m.%Y %H:%M') }}</strong>
+              </div>
+              <div class="detail-meta-box">
+                <span class="detail-meta-label">Механик</span>
+                <strong>{{ order.mechanic.username if order.mechanic else '-' }}</strong>
+              </div>
+            </div>
             <p><strong>Описание:</strong> {{ order.description }}</p>
             <p><strong>Автомобил:</strong> {{ order.car.make }} {{ order.car.model }} ({{ order.car.registration_number or order.car.vin }})</p>
             <p><strong>Клиент:</strong> {{ order.client.username if order.client else order.car.owner_name }}</p>
-            <p><strong>Механик:</strong> {{ order.mechanic.username if order.mechanic else '-' }}</p>
             <p><strong>Статус:</strong> <span class="badge {{ status_badge(order.status) }} status-pill">{{ status_label(order.status) }}</span></p>
             <p><strong>Бележки:</strong> {{ order.notes or '-' }}</p>
             <p><strong>Труд:</strong> {{ '%.2f'|format(order.labor_cost) }} лв.</p>
@@ -101,19 +124,30 @@
               <li class="list-group-item text-muted">Няма добавени части.</li>
               {% endfor %}
             </ul>
+
             {% if current_user.role in ['manager', 'mechanic'] %}
+            {% if parts %}
             <form method="post" action="{{ url_for('add_part_to_order', order_id=order.id, status=selected_status, q=search) }}" class="row g-2 mb-3">
               <div class="col-md-8"><select class="form-select" name="part_id" required><option value="">Добави част</option>{% for part in parts %}<option value="{{ part.id }}">{{ part.name }} (наличност: {{ part.quantity }})</option>{% endfor %}</select></div>
               <div class="col-md-2"><input class="form-control" type="number" min="1" value="1" name="quantity_used"></div>
               <div class="col-md-2"><button class="btn btn-outline-success w-100">Добави</button></div>
             </form>
+            {% else %}
+            <div class="small text-muted mb-3">Няма налични части за добавяне.</div>
+            {% endif %}
+
             <form method="post" action="{{ url_for('update_work_order_status', order_id=order.id, status=selected_status, q=search) }}" class="row g-2 mb-3">
-              <div class="col-md-4"><select class="form-select" name="status"><option value="open" {% if order.status == 'open' %}selected{% endif %}>Приета</option><option value="in_progress" {% if order.status == 'in_progress' %}selected{% endif %}>В ремонт</option><option value="awaiting_parts" {% if order.status == 'awaiting_parts' %}selected{% endif %}>Чака части</option><option value="completed" {% if order.status == 'completed' %}selected{% endif %}>Приключена</option></select></div>
+              <div class="{% if current_user.role == 'manager' %}col-md-4{% else %}col-md-6{% endif %}"><select class="form-select" name="status"><option value="open" {% if order.status == 'open' %}selected{% endif %}>Приета</option><option value="in_progress" {% if order.status == 'in_progress' %}selected{% endif %}>В ремонт</option><option value="awaiting_parts" {% if order.status == 'awaiting_parts' %}selected{% endif %}>Чака части</option><option value="completed" {% if order.status == 'completed' %}selected{% endif %}>Приключена</option></select></div>
+              {% if current_user.role == 'manager' %}
               <div class="col-md-4"><select class="form-select" name="mechanic_id"><option value="">Без механик</option>{% for mechanic in mechanics %}<option value="{{ mechanic.id }}" {% if order.mechanic_id == mechanic.id %}selected{% endif %}>{{ mechanic.username }}</option>{% endfor %}</select></div>
               <div class="col-md-4"><button class="btn btn-primary w-100">Обнови</button></div>
+              {% else %}
+              <div class="col-md-6"><button class="btn btn-primary w-100">Обнови</button></div>
+              {% endif %}
               <div class="col-md-12"><textarea class="form-control" name="notes" placeholder="Бележки">{{ order.notes or '' }}</textarea></div>
             </form>
             {% endif %}
+
             {% if current_user.role == 'manager' %}
             <form method="post" action="{{ url_for('delete_work_order', order_id=order.id, status=selected_status, q=search) }}" onsubmit="return confirm('Наистина ли искате да изтриете тази поръчка?');">
               <button class="btn btn-outline-danger">Изтрий поръчката</button>

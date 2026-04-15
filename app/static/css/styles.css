@@ -683,6 +683,193 @@ select:focus {
     margin: 0;
 }
 
+/* landing page */
+.landing-consistent {
+    max-width: 1040px;
+    margin: 0 auto;
+}
+
+.landing-hero-card {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(3, 21, 37, 0.88)) !important;
+}
+
+.landing-hero-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.18), transparent 28%),
+        radial-gradient(circle at 80% 80%, rgba(6, 182, 212, 0.12), transparent 24%);
+    pointer-events: none;
+}
+
+.landing-hero-card .card-body,
+.landing-info-card .card-body {
+    position: relative;
+    z-index: 1;
+}
+
+.landing-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.65rem 1rem;
+    border-radius: 999px;
+    background: rgba(37, 99, 235, 0.14);
+    border: 1px solid rgba(125, 211, 252, 0.15);
+    color: #bfdbfe;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.landing-chip i {
+    color: #7dd3fc;
+}
+
+.landing-title {
+    max-width: 12ch;
+    margin: 1.35rem auto 1rem;
+    color: var(--text-strong);
+    font-size: clamp(2.4rem, 5.8vw, 4.25rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+}
+
+.landing-subtitle {
+    max-width: 640px;
+    margin-bottom: 0;
+    font-size: 1.1rem;
+}
+
+.landing-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.landing-demo-note {
+    color: var(--text-soft);
+    font-size: 0.98rem;
+}
+
+.landing-info-card {
+    height: 100%;
+}
+
+.landing-info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+    margin-bottom: 1rem;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.18), rgba(37, 99, 235, 0.2));
+    color: #7dd3fc;
+    font-size: 1.35rem;
+    box-shadow: inset 0 0 0 1px rgba(125, 211, 252, 0.08);
+}
+
+.landing-info-card h5 {
+    margin-bottom: 0.65rem;
+}
+
+.stat-number {
+    font-size: clamp(1.9rem, 4vw, 2.6rem);
+    font-weight: 800;
+    line-height: 1;
+    color: var(--text-strong);
+}
+
+.detail-card {
+    overflow: hidden;
+}
+
+.detail-image,
+.detail-image-placeholder {
+    width: 100%;
+    height: 280px;
+}
+
+.detail-image {
+    object-fit: cover;
+    display: block;
+}
+
+.detail-image-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.12), rgba(37, 99, 235, 0.18));
+    color: #7dd3fc;
+    font-size: 4rem;
+}
+
+.detail-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.detail-meta-box {
+    padding: 1rem 1.1rem;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.detail-meta-label {
+    display: block;
+    margin-bottom: 0.45rem;
+    color: var(--text-soft);
+    font-size: 0.9rem;
+}
+
+.detail-meta-box strong {
+    color: var(--text-strong);
+    word-break: break-word;
+}
+
+.login-card {
+    overflow: hidden;
+}
+
+.login-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 68px;
+    height: 68px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(37, 99, 235, 0.24));
+    color: #7dd3fc;
+    font-size: 1.8rem;
+}
+
+.login-demo {
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.login-demo-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    color: var(--text);
+}
+
+.login-demo-list span {
+    padding: 0.8rem 0.95rem;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
 @media (max-width: 767.98px) {
     .grid-cards,
     .parts-list {
@@ -702,6 +889,23 @@ select:focus {
     .part-actions .btn,
     .grid-cards .btn {
         width: 100%;
+    }
+
+    .landing-title {
+        font-size: clamp(2rem, 10vw, 3rem);
+    }
+
+    .landing-actions {
+        align-items: stretch;
+    }
+
+    .landing-demo-note {
+        width: 100%;
+    }
+
+    .detail-image,
+    .detail-image-placeholder {
+        height: 220px;
     }
 }
 

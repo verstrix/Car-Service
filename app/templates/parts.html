@@ -49,7 +49,7 @@
       <div class="part-info">
         <h5 class="part-name"><a href="{{ url_for('part_details', part_id=part.id) }}">{{ part.name }}</a></h5>
         <p class="part-number">{{ part.part_number }}</p>
-        <p class="part-description">{{ part.description[:80] }}{% if part.description and part.description|length > 80 %}...{% endif %}</p>
+        <p class="part-description">{{ (part.description or 'Няма описание.')[:80] }}{% if part.description and part.description|length > 80 %}...{% endif %}</p>
         <div class="part-meta">
           <span class="meta-item"><strong>{{ part.quantity }}</strong> налични</span>
           <span class="meta-item">Минимум: {{ part.min_quantity }}</span>

@@ -1,20 +1,60 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-  <h3>Част — {{ part.name }}</h3>
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <h3 class="mb-0">Част — {{ part.name }}</h3>
   <div class="d-flex gap-2">
     <a class="btn btn-secondary" href="{{ url_for('list_parts') }}">Обратно</a>
     {% if current_user.role == 'manager' %}<a class="btn btn-outline-primary" href="{{ url_for('edit_part', part_id=part.id) }}">Редакция</a>{% endif %}
   </div>
 </div>
-<div class="card mb-4"><div class="card-body">
-  <p><strong>Номер:</strong> {{ part.part_number }}</p>
-  <p><strong>Име:</strong> {{ part.name }}</p>
-  <p><strong>Количество:</strong> {{ part.quantity }}</p>
-  <p><strong>Минимална наличност:</strong> {{ part.min_quantity }}</p>
-  <p><strong>Цена за брой:</strong> {{ '%.2f'|format(part.unit_price) }} лв.</p>
-  <hr>
-  <h6>Описание</h6>
-  <p>{{ part.description or 'Няма описание.' }}</p>
-</div></div>
+
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card detail-card h-100 overflow-hidden">
+      {% if part.image_filename %}
+      <img src="{{ url_for('static', filename=part.image_filename) }}" class="detail-image" alt="{{ part.name }}">
+      {% else %}
+      <div class="detail-image-placeholder"><i class="bi bi-box-seam"></i></div>
+      {% endif %}
+      <div class="card-body">
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <span class="badge {% if part.quantity <= part.min_quantity %}text-bg-warning{% else %}text-bg-success{% endif %}">
+            {% if part.quantity <= part.min_quantity %}Ниска наличност{% else %}Налична{% endif %}
+          </span>
+          <span class="badge text-bg-light">{{ part.part_number }}</span>
+        </div>
+        <h4 class="mb-1">{{ part.name }}</h4>
+        <p class="text-muted mb-0">Използвана в {{ part.order_links|length }} поръчки</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="detail-meta-grid mb-3">
+      <div class="detail-meta-box">
+        <span class="detail-meta-label">Количество</span>
+        <strong>{{ part.quantity }}</strong>
+      </div>
+      <div class="detail-meta-box">
+        <span class="detail-meta-label">Минимално</span>
+        <strong>{{ part.min_quantity }}</strong>
+      </div>
+      <div class="detail-meta-box">
+        <span class="detail-meta-label">Цена</span>
+        <strong>{{ '%.2f'|format(part.unit_price) }} лв.</strong>
+      </div>
+      <div class="detail-meta-box">
+        <span class="detail-meta-label">Добавена</span>
+        <strong>{{ part.created_at.strftime('%d.%m.%Y') }}</strong>
+      </div>
+    </div>
+
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="mb-3">Описание</h5>
+        <p class="mb-0">{{ part.description or 'Няма описание за тази част.' }}</p>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

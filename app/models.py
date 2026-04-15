@@ -11,7 +11,7 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(20), nullable=False, default='client')
     full_name = db.Column(db.String(120))
     phone = db.Column(db.String(30))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.now)
 
     cars = db.relationship('Car', backref='user', lazy=True)
 
@@ -33,7 +33,7 @@ class Car(db.Model):
     owner_phone = db.Column(db.String(30))
     image_filename = db.Column(db.String(255))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.now)
 
     orders = db.relationship('WorkOrder', backref='car', lazy=True, cascade='all, delete-orphan')
 
@@ -47,7 +47,7 @@ class Part(db.Model):
     unit_price = db.Column(db.Float, nullable=False, default=0.0)
     description = db.Column(db.Text)
     image_filename = db.Column(db.String(255))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.now)
 
     order_links = db.relationship('WorkOrderPart', backref='part', lazy=True, cascade='all, delete-orphan')
 
@@ -59,8 +59,8 @@ class WorkOrder(db.Model):
     status = db.Column(db.String(30), nullable=False, default='open')
     notes = db.Column(db.Text)
     labor_cost = db.Column(db.Float, nullable=False, default=0.0)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
 
     car_id = db.Column(db.Integer, db.ForeignKey('car.id'), nullable=False)
     client_id = db.Column(db.Integer, db.ForeignKey('user.id'))
