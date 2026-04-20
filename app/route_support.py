@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 from functools import wraps
+from importlib import import_module
 from uuid import uuid4
 
 from flask import current_app, flash, redirect, url_for
@@ -35,6 +36,7 @@ def register_template_helpers(app):
             'status_badge': status_badge,
             'status_meta': STATUS_META,
             'role_label': role_label,
+            'pdf_export_enabled': pdf_export_available(),
         }
 
 
@@ -166,6 +168,29 @@ def status_badge(status: str) -> str:
 
 def role_label(role: str) -> str:
     return ROLE_META.get(role, role)
+
+
+def load_pdf_dependencies():
+    pagesizes = import_module('reportlab.lib.pagesizes')
+    utils = import_module('reportlab.lib.utils')
+    pdfbase = import_module('reportlab.pdfbase')
+    ttfonts = import_module('reportlab.pdfbase.ttfonts')
+    pdfgen = import_module('reportlab.pdfgen.canvas')
+    return {
+        'A4': pagesizes.A4,
+        'simple_split': utils.simpleSplit,
+        'pdfmetrics': pdfbase.pdfmetrics,
+        'ttfont': ttfonts.TTFont,
+        'canvas': pdfgen,
+    }
+
+
+def pdf_export_available() -> bool:
+    try:
+        load_pdf_dependencies()
+    except ImportError:
+        return False
+    return True
 
 
 def car_access_allowed(car: Car) -> bool:

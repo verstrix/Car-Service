@@ -112,7 +112,9 @@
               {% if current_user.role in ['manager', 'mechanic'] %}
               <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('edit_work_order', order_id=order.id) }}">Редакция</a>
               {% endif %}
+              {% if pdf_export_enabled %}
               <a class="btn btn-sm btn-outline-primary" href="{{ url_for('work_order_pdf', order_id=order.id) }}">PDF</a>
+              {% endif %}
             </div>
           </div>
           <div class="col-lg-6">

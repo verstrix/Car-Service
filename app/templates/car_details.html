@@ -71,7 +71,7 @@
         <div class="card h-100">
           <div class="card-body">
             <h5 class="mb-3">Кратка информация</h5>
-            <p class="text-muted mb-2">Автомобилът е достъпен в системата за създаване на работни поръчки, проследяване на история и генериране на PDF документи.</p>
+            <p class="text-muted mb-2">Автомобилът е достъпен в системата за създаване на работни поръчки и проследяване на история{% if pdf_export_enabled %}, както и за генериране на PDF документи{% endif %}.</p>
             <p class="text-muted mb-0">Ако е свързан с клиентски акаунт, поръчките могат да бъдат проследявани и от клиента.</p>
           </div>
         </div>
@@ -108,7 +108,7 @@
             <td>{{ o.mechanic.username if o.mechanic else '-' }}</td>
             <td>{{ o.created_at.strftime('%d.%m.%Y') }}</td>
             <td>{{ '%.2f'|format(o.total_cost) }} лв.</td>
-            <td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('work_order_pdf', order_id=o.id) }}">PDF</a></td>
+            <td>{% if pdf_export_enabled %}<a class="btn btn-sm btn-outline-primary" href="{{ url_for('work_order_pdf', order_id=o.id) }}">PDF</a>{% endif %}</td>
           </tr>
           {% else %}
           <tr><td colspan="7" class="text-center text-muted">Няма работни поръчки за този автомобил.</td></tr>

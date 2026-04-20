@@ -1,6 +1,8 @@
-import tempfile
+import shutil
 import unittest
 from pathlib import Path
+from unittest import mock
+from uuid import uuid4
 
 from app import create_app, db
 from app.models import Car, Part, User, WorkOrder
@@ -8,15 +10,18 @@ from app.models import Car, Part, User, WorkOrder
 
 class CarSystemTestCase(unittest.TestCase):
     def setUp(self):
-        self.temp_dir = tempfile.TemporaryDirectory()
-        db_path = Path(self.temp_dir.name) / 'test.sqlite3'
+        test_temp_root = Path(__file__).resolve().parent / '.tmp'
+        test_temp_root.mkdir(exist_ok=True)
+        self.temp_dir = test_temp_root / f'test-instance-{uuid4().hex}'
+        self.temp_dir.mkdir()
+        db_path = self.temp_dir / 'test.sqlite3'
         self.app = create_app(
             {
                 'TESTING': True,
                 'SQLALCHEMY_DATABASE_URI': f'sqlite:///{db_path.as_posix()}',
                 'SEED_DATABASE': True,
             },
-            instance_path=self.temp_dir.name,
+            instance_path=str(self.temp_dir),
         )
         self.client = self.app.test_client()
 
@@ -27,7 +32,7 @@ class CarSystemTestCase(unittest.TestCase):
             db.engine.dispose()
         self.client = None
         self.app = None
-        self.temp_dir.cleanup()
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def login(self, username, password):
         return self.client.post(
@@ -154,6 +159,27 @@ class CarSystemTestCase(unittest.TestCase):
 
         self.assertIn('114.50', html)
         self.assertNotIn('154.50', html)
+
+    def test_work_orders_hide_pdf_actions_when_pdf_support_is_unavailable(self):
+        self.login('manager', 'manager123')
+        with mock.patch('app.route_support.pdf_export_available', return_value=False):
+            response = self.client.get('/work-orders')
+
+        html = response.get_data(as_text=True)
+        self.assertNotIn('/work-orders/1/pdf', html)
+        self.assertNotIn('/work-orders/2/pdf', html)
+
+    def test_pdf_route_redirects_cleanly_when_pdf_support_is_unavailable(self):
+        self.login('manager', 'manager123')
+        with (
+            mock.patch('app.route_support.pdf_export_available', return_value=False),
+            mock.patch('app.routes_orders.pdf_export_available', return_value=False),
+        ):
+            response = self.client.get('/work-orders/1/pdf', follow_redirects=True)
+
+        html = response.get_data(as_text=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('PDF експортът е временно недостъпен.', html)
 
 
 if __name__ == '__main__':

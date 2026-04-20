@@ -14,7 +14,7 @@
     {% endif %}
     <div class="col-12"><label class="form-label">Описание</label><textarea class="form-control" name="description" required>{{ order.description }}</textarea></div>
     <div class="col-12"><label class="form-label">Бележки</label><textarea class="form-control" name="notes">{{ order.notes or '' }}</textarea></div>
-    <div class="col-12 d-flex gap-2"><button class="btn btn-primary">Запази промените</button><a class="btn btn-outline-secondary" href="{{ url_for('list_work_orders') }}">Отказ</a><a class="btn btn-outline-primary" href="{{ url_for('work_order_pdf', order_id=order.id) }}">Изтегли PDF</a></div>
+    <div class="col-12 d-flex gap-2"><button class="btn btn-primary">Запази промените</button><a class="btn btn-outline-secondary" href="{{ url_for('list_work_orders') }}">Отказ</a>{% if pdf_export_enabled %}<a class="btn btn-outline-primary" href="{{ url_for('work_order_pdf', order_id=order.id) }}">Изтегли PDF</a>{% endif %}</div>
   </form>
 </div></div>
 {% endblock %}

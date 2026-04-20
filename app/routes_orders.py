@@ -3,11 +3,6 @@ from io import BytesIO
 
 from flask import flash, redirect, render_template, request, send_file, url_for
 from flask_login import current_user, login_required
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.utils import simpleSplit
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfgen import canvas
 from sqlalchemy import or_
 
 from . import db
@@ -18,8 +13,10 @@ from .route_support import (
     client_car_filter,
     client_order_filter,
     linked_client_id_for_car,
+    load_pdf_dependencies,
     order_access_allowed,
     order_edit_allowed,
+    pdf_export_available,
     resolve_mechanic,
     resolve_optional_int,
     role_required,
@@ -289,6 +286,17 @@ def register_work_order_routes(app):
         if not order_access_allowed(order):
             flash('Нямате достъп до тази поръчка.', 'danger')
             return redirect(url_for('list_work_orders'))
+
+        if not pdf_export_available():
+            flash('PDF експортът е временно недостъпен. Инсталирайте reportlab, за да го използвате.', 'warning')
+            return redirect(url_for('list_work_orders'))
+
+        pdf_tools = load_pdf_dependencies()
+        A4 = pdf_tools['A4']
+        simpleSplit = pdf_tools['simple_split']
+        pdfmetrics = pdf_tools['pdfmetrics']
+        TTFont = pdf_tools['ttfont']
+        canvas = pdf_tools['canvas']
 
         windows_font_root = os.path.join(os.environ.get('WINDIR', 'C:\\Windows'), 'Fonts')
         font_candidates = [
