@@ -1,4 +1,4 @@
-# Car System Full
+# Car System
 
 Flask приложение за управление на автосервиз с роли за `manager`, `mechanic` и `client`.
 
